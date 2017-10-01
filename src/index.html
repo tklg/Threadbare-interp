@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en-US">
+	<head>
+		<meta charset="utf-8" />
+		<meta author="tkluge" />
+		<meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<link rel="stylesheet" type="text/css" href="./css/bsh.css">
+		<meta name="theme-color" content="#225378">
+		<title>ThreadBare</title>
+	</head>
+	<body>
+		<textarea id="e" style="height: 400px;width: 400px;">
+global int g = 0;
+thread P: {
+  int a1 = 1;
+}
+thread Q: {
+  int testInt = (1 + 2);
+  int b = testInt;
+}</textarea>
+		<div style="display: none"></div>
+	</body>
+	<script type="text/javascript" src="./js/threadbare.bundle.js"></script>
+	<script type="text/javascript">
+		var b = new ThreadBare();
+		b.interpret(document.getElementById('e').value);
+	</script>
+</html>

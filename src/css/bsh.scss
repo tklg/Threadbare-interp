@@ -1,0 +1,15 @@
+//@import 'rt-raleway';
+//@import 'materialdesignicons';
+@import 'styles';
+
+#LOGGERJS {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 400px;
+	height: 100%;
+	overflow-y: auto;
+	word-wrap: break-word;
+	word-break: break-all;
+	white-space: pre;
+}
