@@ -2,6 +2,7 @@ import AbstractElement from './AbstractElement.js';
 
 // kind key() { value: FunctionExpression }
 class MethodDefinition extends AbstractElement {
+	// goes inside a class
 	constructor() {
 		super();
 		this._type = "MethodDefinition";

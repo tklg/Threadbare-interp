@@ -4,36 +4,44 @@ import TypeModifierGlobalToken from './token/TypeModifierGlobalToken.js';
 import PrimitiveIntToken from './token/PrimitiveIntToken.js';
 import VarNameToken from './token/VarNameToken.js';
 import OpAdditionToken from './token/OpAdditionToken.js';
+import OpToken from './token/OpToken.js';
 import OpAssignmentToken from './token/OpAssignmentToken.js';
 import OpEqualityToken from './token/OpEqualityToken.js';
 import ValueToken from './token/ValueToken.js';
+import ComToken from './token/ComToken.js';
 import SemToken from './token/SemToken.js';
 import ThreadToken from './token/ThreadToken.js';
 import LabelToken from './token/LabelToken.js';
+import ParamLabelToken from './token/ParamLabelToken.js';
 import BraceLeftToken from './token/BraceLeftToken.js';
 import BraceRightToken from './token/BraceRightToken.js';
 import ParenLeftToken from './token/ParenLeftToken.js';
 import ParenRightToken from './token/ParenRightToken.js';
 import BracketLeftToken from './token/BracketLeftToken.js';
 import BracketRightToken from './token/BracketRightToken.js';
+import CommentLineToken from './token/CommentLineToken.js';
+import CommentStartToken from './token/CommentStartToken.js';
+import CommentEndToken from './token/CommentEndToken.js';
 
 const tokenRegex = {
 	typeModifier: /^\s*(global|static|final|public|private|protected)\s*/,
 	keyword: /^\s*(new|class)\s*/,
 	primitiveType: /^\s*(char|short|int|float|double|long)\s*/,
+	builtin: /^\s*(print|sleep)\s*/,
 	objectType: /^\s*([A-Z][a-zA-Z_]+[a-zA-Z0-9_]*)\s*/,
-	variableName: /^\s*([a-z\$_]+[a-z0-9\$_]*)\s*/i,
+	variableName: /^\s*([a-z\$_]+[a-z0-9\$_\.]*)\s*/i,
 	operatorShorthand: /^\s*(\+\+|--|\+=|-=|\*=|\/=|%=|\^=|\|=|&=)\s*/,
 	operator: /^\s*(\+|-|\*|\/|%|=|==|!=)\s*/,
 	valueInteger: /^\s*(\d+)\s*/,
 	valueChar: /^\s*'(.)'\s*/,
 	valueString: /^\s*"(.+)"\s*/,
+	comma: /^\s*(,)\s*/,
 	semicolon: /^\s*(;)\s*/,
 	thread: /^\s*(thread)\s*/,
 	function: /^\s*(function)\s*/,
 	atomic: /^\s*(atomic)\s*/,
 	label: /^\s*([a-z\$_]+[a-z0-9\$_]*):\s*/i,
-	paramLabel: /^\s*([a-z\$_]+[a-z0-9\$_]*\([a-z\$_]+[a-z0-9\$_,]*\)):\s*/i,
+	paramLabel: /^\s*((?:[a-z\$_]+[a-z0-9\$_]*)\s*\([a-z\$_]+[a-z0-9\$_, ]*\)):\s*/i,
 	braceLeft: /^\s*({)\s*/,
 	braceRight: /^\s*(})\s*/,
 	functionCall: /^\s*([a-z\$_]+[a-z0-9\$_]*) *\(\s*/, // func(
@@ -41,8 +49,14 @@ const tokenRegex = {
 	parenRight: /^\s*(\))\s*/,
 	bracketLeft: /^\s*(\[)\s*/,
 	bracketRight: /^\s*(\])\s*/,
+	commentLine: /^\/\//,
+	commentStart: /^\s*\/\*\s*/,
+	commentEnd: /^\s*\*\/\s*/,
 };
 const matchOrder = [
+	//'commentLine',
+	'commentStart',
+	'commentEnd',
 	'typeModifier',
 	'keyword',
 	'primitiveType',
@@ -55,6 +69,7 @@ const matchOrder = [
 	'label',
 	'operatorShorthand',
 	'operator',
+	'comma',
 	'semicolon',
 	'braceLeft',
 	'braceRight',
@@ -133,14 +148,22 @@ function Tokenizer(_str) {
 function TokenUtil() {}
 TokenUtil.getFromNameAndMatch = function(name, match, pos) {
 	switch (name) {
+		case 'commentLine': return new CommentLineToken(name, match, pos);
+		case 'commentStart': return new CommentStartToken(name, match, pos);
+		case 'commentEnd': return new CommentEndToken(name, match, pos);
 		case 'typeModifier': return TokenUtil.getTypeModifierToken(name, match, pos);
 		case 'primitiveType': return TokenUtil.getPrimitiveTypeToken(name, match, pos);
 		case 'variableName': return new VarNameToken(name, match, pos);
-		case 'operator': return TokenUtil.getOperatorToken(name, match, pos);
+		case 'operator': 
+		case 'operatorShorthand':
+			//return TokenUtil.getOperatorToken(name, match, pos);
+			return new OpToken(name, match, pos);
 		case 'valueInteger': return new ValueToken(name, parseInt(match), pos);
+		case 'comma': return new ComToken(name, match, pos);
 		case 'semicolon': return new SemToken(name, match, pos);
 		case 'thread': return new ThreadToken(name, match, pos);
 		case 'label': return new LabelToken(name, match, pos);
+		case 'paramLabel': return new ParamLabelToken(name, match, pos);
 		case 'braceLeft': return new BraceLeftToken(name, match, pos);
 		case 'braceRight': return new BraceRightToken(name, match, pos);
 		case 'parenLeft': return new ParenLeftToken(name, match, pos);
@@ -167,6 +190,7 @@ TokenUtil.getOperatorToken = function(name, match, pos) {
 		case '+': return new OpAdditionToken(name, match, pos);
 		case '=': return new OpAssignmentToken(name, match, pos);
 		case '==': return new OpEqualityToken(name, match, pos);
+		default: throw "Invalid operator: " + match;
 	}
 }
 

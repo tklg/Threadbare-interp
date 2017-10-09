@@ -10,15 +10,20 @@
 	</head>
 	<body>
 		<textarea id="e" style="height: 400px;width: 400px;">
-global int g = 0;
-thread P: {
+/* global int g = (2*(5+7))+(1-4); */
+thread P(x): {
   int a1 = 1;
+  a1++;
+  a1 += 2;
+  a1 = 5 / 2;
 }
-thread Q: {
+thread Q: {}
+thread {
   int testInt = (1 + 2);
-  int b = testInt;
+  int b = testInt + 3 + 6;
 }</textarea>
-		<div style="display: none"></div>
+		<div style="display: none">
+</div>
 	</body>
 	<script type="text/javascript" src="./js/threadbare.bundle.js"></script>
 	<script type="text/javascript">

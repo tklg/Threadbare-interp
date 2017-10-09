@@ -3,10 +3,10 @@ import FunctionExpression from './FunctionExpression.js';
 // thread { body }
 // thread id: { body }
 // thread id(params): { body }
-class ThreadExpression extends FunctionExpression {
+class ThreadDeclaration extends FunctionExpression {
 	constructor() {
 		super();
-		this._type = "ThreadExpression";
+		this._type = "ThreadDeclaration";
 	}
 }
-export default ThreadExpression;
+export default ThreadDeclaration;

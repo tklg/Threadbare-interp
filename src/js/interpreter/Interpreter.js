@@ -22,7 +22,7 @@ function Interpreter() {
 			}).then(tree => {
 				// environments, and token sequence instructions
 				//Log.out(TAG, tree);
-				Log.d(TAG, tree);
+				Log.out(TAG, tree);
 				resolve(tree);
 			}).catch(e => {
 				reject(e);

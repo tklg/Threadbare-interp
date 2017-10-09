@@ -5,6 +5,8 @@ import ParenLeftToken from './token/ParenLeftToken.js';
 import ParenRightToken from './token/ParenRightToken.js';
 import BracketLeftToken from './token/BracketLeftToken.js';
 import BracketRightToken from './token/BracketRightToken.js';
+import CommentStartToken from './token/CommentStartToken.js';
+import CommentEndToken from './token/CommentEndToken.js';
 
 function TokenLinker() {
 	this.link = function(tokens) {
@@ -77,6 +79,26 @@ function TokenLinker() {
 							balance--;
 						}
 					} else if (tokens[j] instanceof BracketLeftToken) {
+						balance++;
+						linkTokens(tokens, j, stopInd);
+					}
+				}
+			} else if (tokens[i] instanceof CommentStartToken && !tokens[i].matchingToken) {
+				var balance = 0;
+				for (var j = i + 1; j < tokens.length; j++) {
+					if (balance < 0) {
+						throw `Unmatched CommentEndToken at: Line ${tokens[i].pos.row}, Column ${tokens[i].pos.col}.`;
+					}
+					if (tokens[j] instanceof CommentEndToken) {
+						if (balance === 0) {
+							var left = tokens[i];
+							var right = tokens[j];
+							left.matchingToken = right;
+							right.matchingToken = left;
+						} else {
+							balance--;
+						}
+					} else if (tokens[j] instanceof CommentStartToken) {
 						balance++;
 						linkTokens(tokens, j, stopInd);
 					}

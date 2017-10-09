@@ -1,7 +1,7 @@
 import AbstractElement from './AbstractElement.js';
 class Program extends AbstractElement {
-	constructor() {
-		super();
+	constructor(env) {
+		super(env);
 		this._type = "Program";
 		this._body = [];
 	}
