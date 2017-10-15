@@ -19,52 +19,51 @@ import ParenLeftToken from './token/ParenLeftToken.js';
 import ParenRightToken from './token/ParenRightToken.js';
 import BracketLeftToken from './token/BracketLeftToken.js';
 import BracketRightToken from './token/BracketRightToken.js';
-import CommentLineToken from './token/CommentLineToken.js';
 import CommentStartToken from './token/CommentStartToken.js';
 import CommentEndToken from './token/CommentEndToken.js';
+import FunctionToken from './token/FunctionToken.js';
 
 const tokenRegex = {
-	typeModifier: /^\s*(global|static|final|public|private|protected)\s*/,
-	keyword: /^\s*(new|class)\s*/,
-	primitiveType: /^\s*(char|short|int|float|double|long)\s*/,
-	builtin: /^\s*(print|sleep)\s*/,
-	objectType: /^\s*([A-Z][a-zA-Z_]+[a-zA-Z0-9_]*)\s*/,
-	variableName: /^\s*([a-z\$_]+[a-z0-9\$_\.]*)\s*/i,
-	operatorShorthand: /^\s*(\+\+|--|\+=|-=|\*=|\/=|%=|\^=|\|=|&=)\s*/,
-	operator: /^\s*(\+|-|\*|\/|%|=|==|!=)\s*/,
-	valueInteger: /^\s*(\d+)\s*/,
-	valueChar: /^\s*'(.)'\s*/,
-	valueString: /^\s*"(.+)"\s*/,
-	comma: /^\s*(,)\s*/,
-	semicolon: /^\s*(;)\s*/,
-	thread: /^\s*(thread)\s*/,
-	function: /^\s*(function)\s*/,
-	atomic: /^\s*(atomic)\s*/,
-	label: /^\s*([a-z\$_]+[a-z0-9\$_]*):\s*/i,
-	paramLabel: /^\s*((?:[a-z\$_]+[a-z0-9\$_]*)\s*\([a-z\$_]+[a-z0-9\$_, ]*\)):\s*/i,
-	braceLeft: /^\s*({)\s*/,
-	braceRight: /^\s*(})\s*/,
-	functionCall: /^\s*([a-z\$_]+[a-z0-9\$_]*) *\(\s*/, // func(
-	parenLeft: /^\s*(\()\s*/,
-	parenRight: /^\s*(\))\s*/,
-	bracketLeft: /^\s*(\[)\s*/,
-	bracketRight: /^\s*(\])\s*/,
-	commentLine: /^\/\//,
-	commentStart: /^\s*\/\*\s*/,
-	commentEnd: /^\s*\*\/\s*/,
+	typeModifier: /^\s*(global|static|final|public|private|protected|atomic)/,
+	keyword: /^\s*(new|class)/,
+	primitiveType: /^\s*(char|short|int|float|double|long)/,
+	objectType: /^\s*([A-Z][a-zA-Z_]+[a-zA-Z0-9_]*)/,
+	variableName: /^\s*([a-z\$_]+[a-z0-9\$_\.]*)/i,
+	operatorShorthand: /^\s*(\+\+|--|\+=|-=|\*=|\/=|%=|\^=|\|=|&=)/,
+	operator: /^\s*(\+|-|\*|\/|%|=|==|!=)/,
+	valueInteger: /^\s*(\d+)/,
+	valueChar: /^\s*'(.)'/,
+	valueString: /^\s*"(.+)"/,
+	comma: /^\s*(,)/,
+	semicolon: /^\s*(;)/,
+	thread: /^\s*(thread)/,
+	functionDeclaration: /^\s*(function)/,
+	//atomic: /^\s*(atomic)\s*/,
+	label: /^\s*([a-z\$_]+[a-z0-9\$_]*):/i,
+	paramLabel: /^\s*((?:[a-z\$_]+[a-z0-9\$_]*)\s*\([a-z\$_]+[a-z0-9\$_, ]*\)):/i,
+	braceLeft: /^\s*({)/,
+	braceRight: /^\s*(})/,
+	builtin: /^\s*(print|sleep) *\(/, // func(
+	function: /^\s*([a-z\$_]+[a-z0-9\$_]*) *\(/, // func(
+	parenLeft: /^\s*(\()/,
+	parenRight: /^\s*(\))/,
+	bracketLeft: /^\s*(\[)/,
+	bracketRight: /^\s*(\])/,
+	commentStart: /^\s*(\/\*|\/\/)/,
+	commentEnd: /^\s*(\*\/|\n)/,
 };
 const matchOrder = [
-	//'commentLine',
 	'commentStart',
 	'commentEnd',
 	'typeModifier',
 	'keyword',
 	'primitiveType',
 	'objectType',
-	'functionCall',
-	'thread',
+	'builtin',
 	'function',
-	'atomic',
+	'thread',
+	'functionDeclaration',
+	//'atomic',
 	'paramLabel',
 	'label',
 	'operatorShorthand',
@@ -88,16 +87,20 @@ function Tokenizer(_str) {
 	var str = _str;
 	var workingStr = str;
 	var parsedStr = '';
-	var linesArr = _str.split('\n');
+	var linesArr = _str.split('\n')/*.map(ln => ln + '\n')*/;
+	//Log.d("LNS", JSON.parse(JSON.stringify(linesArr)));
 	var lineNo = 1;
 	var index = 0;
 	var tokens = [];
+	var startedComment;
 
 	this.parse = function() {
 		return new Promise((resolve, reject) => {
 			while (linesArr.length) {
 				try {
+					startedComment = false;
 					matchLineToTokens(linesArr.shift(), lineNo++);
+					if (startedComment) tokens.push(new CommentEndToken('commentEnd', '\n', {row: lineNo - 1, col: parsedStr.length, char: index}));
 				} catch (e) {
 					reject(e);
 				}
@@ -114,6 +117,7 @@ function Tokenizer(_str) {
 	function matchLineToTokens(lineStr, lineNo) {
 		workingStr = lineStr;
 		parsedStr = '';
+		//Log.d(workingStr);
 		while (workingStr.length) {
 			matchStrToToken(lineNo);
 		}
@@ -134,6 +138,8 @@ function Tokenizer(_str) {
 					col: col,
 					char: index,
 				});
+				if (matched instanceof CommentStartToken) startedComment = true;
+				if (matched instanceof CommentEndToken) startedComment = false;
 				break;
 			}
 		}
@@ -148,7 +154,7 @@ function Tokenizer(_str) {
 function TokenUtil() {}
 TokenUtil.getFromNameAndMatch = function(name, match, pos) {
 	switch (name) {
-		case 'commentLine': return new CommentLineToken(name, match, pos);
+		//case 'commentLine': return new CommentLineToken(name, match, pos);
 		case 'commentStart': return new CommentStartToken(name, match, pos);
 		case 'commentEnd': return new CommentEndToken(name, match, pos);
 		case 'typeModifier': return TokenUtil.getTypeModifierToken(name, match, pos);
@@ -170,6 +176,7 @@ TokenUtil.getFromNameAndMatch = function(name, match, pos) {
 		case 'parenRight': return new ParenRightToken(name, match, pos);
 		case 'bracketLeft': return new BracketLeftToken(name, match, pos);
 		case 'bracketRight': return new BracketRightToken(name, match, pos);
+		case 'builtin': return new FunctionToken(name, match, pos);
 		default: throw "Invalid token type: " + name;
 	}
 }

@@ -18,11 +18,17 @@ class AbstractElement {
 	set range(range) {
 		this._range = range;
 	}
+	set environment(env) {
+		this._environment = env;
+	}
 	get environment() {
 		return this._environment;
 	}
 	step() {
-		throw "AbstractElement::step() not implemented.";
+		throw this._type + "::step() not implemented.";
+	}
+	isDone() {
+		throw this._type + "::isDone() not implemented";
 	}
 }
 export default AbstractElement;

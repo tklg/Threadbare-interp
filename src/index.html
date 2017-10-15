@@ -11,18 +11,22 @@
 	<body>
 		<textarea id="e" style="height: 400px;width: 400px;">
 /* global int g = (2*(5+7))+(1-4); */
+// test comment
 thread P(x): {
   int a1 = 1;
   a1++;
   a1 += 2;
   a1 = 5 / 2;
+  print(a1);
 }
-thread Q: {}
+</textarea>
+		<div style="display: none">
+			thread Q: {}
 thread {
   int testInt = (1 + 2);
   int b = testInt + 3 + 6;
-}</textarea>
-		<div style="display: none">
+  print(b);
+}
 </div>
 	</body>
 	<script type="text/javascript" src="./js/threadbare.bundle.js"></script>

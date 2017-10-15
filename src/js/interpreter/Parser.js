@@ -4,8 +4,8 @@ import TokenLinker from './TokenLinker.js';
 //import TreeBuilder from './TreeBuilder.js';
 import ASTBuilder from './ASTBuilder.js';
 
-function Interpreter() {
-	const TAG = "Interpreter";
+function Parser() {
+	const TAG = "Parser";
 	this.interpret = function(str) {
 		return new Promise((resolve, reject) => {
 			var tkz = new Tokenizer(str.replace(/\t/g, ''));
@@ -13,7 +13,7 @@ function Interpreter() {
 			//var trb = new TreeBuilder();
 			var ast = new ASTBuilder();
 			tkz.parse().then(tokens => {
-				//Log.out(TAG, tokens);
+				//Log.d(TAG, tokens);
 				return tkl.link(tokens);
 			}).then(linkedTokens => {
 				//Log.d(TAG, linkedTokens);
@@ -30,4 +30,4 @@ function Interpreter() {
 		})
 	} 
 }
-export default Interpreter;
+export default Parser;

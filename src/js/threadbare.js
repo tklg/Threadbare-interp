@@ -1,4 +1,4 @@
-import Interpreter from './interpreter/Interpreter.js';
+import Parser from './interpreter/Parser.js';
 import Runner from './interpreter/Runner.js';
 import Log from './logger/Log.js';
 
@@ -7,11 +7,13 @@ import Log from './logger/Log.js';
 		const TAG = "ThreadBare";
 		var runner = null;
 		this.interpret = function(str) {
-			var i = new Interpreter();
+			var i = new Parser();
 			i.interpret(str.trim())
 			.then(tree => {
 				runner = new Runner(tree);
 				Log.d(TAG, runner);
+
+				runner.step();
 			});
 		}
 		this.start = function() {

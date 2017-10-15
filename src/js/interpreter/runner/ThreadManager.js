@@ -1,4 +1,10 @@
+var tm;
+
 class ThreadManager {
+	static getInstance(type) {
+		if (!tm) tm = new ThreadManager(type || ThreadType.RANDOM);
+		return tm;
+	}
 	constructor(type) { // random, queue
 		this.type = type;
 		this.current = null;
@@ -24,6 +30,9 @@ class ThreadManager {
 				this.current = this.threads[Math.floor(Math.random() * this.threads.length)];
 			}
 		} while (this.current.isBlocked() && i-- > 0);
+	}
+	current() {
+		return this.current;
 	}
 	step() {
 		if (this.current) this.current.step();

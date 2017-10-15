@@ -10,6 +10,7 @@ import UpdateExpression from './ast/UpdateExpression.js';
 import AssignmentExpression from './ast/AssignmentExpression.js';
 import BlockStatement from './ast/BlockStatement.js';
 import ExpressionStatement from './ast/ExpressionStatement.js';
+import BuiltinMethod from './ast/BuiltinMethod.js';
 
 function ASTBuilder() {
 	const TAG = "ASTBuilder";
@@ -27,15 +28,17 @@ function ASTBuilder() {
 		var i = 0;
 		while (i < tokens.length) {
 			var expression;
+			//Log.d("N", i);
 			//Log.d(TAG, tokens[i]);
 
 			if (isCommentBlock(tokens, i)) {
-				var x = 0;
+				var x = i;
 				while (tokens[x].type !== 'commentEnd') {
+					//Log.d(tokens[x]);
 					x++;
 					if (!tokens[x]) throw "Unclosed comment block at position " + i;
 				}
-				i += x;
+				i = x + 1;
 				continue;
 			}
 			// global int x = ...
@@ -94,7 +97,7 @@ function ASTBuilder() {
 				}
 
 				expression.id = id;
-				var indexes = findBlockIndexes(tokens, i);
+				var indexes = findBlockIndexes(tokens, i, 'braceLeft');
 				var subTokens = tokens.slice(indexes.start + 1, indexes.end);
 				if (subTokens.length) {
 					getExpressions(body, subTokens);
@@ -113,6 +116,16 @@ function ASTBuilder() {
 				block.addToBody(expression);
 
 				i += subTokens.length;
+			} else if (isBuiltinMethod(tokens, i)) {
+				var expression = new BuiltinMethod();
+				expression.callee = tokens[i].value;
+				var indexes = findBlockIndexes(tokens, i, 'builtin');
+				var subTokens = tokens.slice(indexes.start + 1, indexes.end);
+				for (var j = 0; j < subTokens.length; j++) {
+					expression.addArgument(getSingleExpression([subTokens[j]]));
+				}
+				i += subTokens.length + 2;
+				block.addToBody(expression);
 			}
 			i++;
 		}
@@ -139,7 +152,7 @@ function ASTBuilder() {
 			asn.operator = tokens[1].value;
 			asn.left = getSingleExpression([tokens[0]]);
 			var subTokens = tokens.splice(2, tokens.length);
-			Log.d(subTokens);
+			//Log.d(subTokens);
 			asn.right = getSingleExpression(subTokens);
 			return asn;
 		} else if (isBinaryExpression(tokens)) { // a + 1, must be after assignmentExpression
@@ -232,8 +245,8 @@ function ASTBuilder() {
 		}
 		return decs;
 	}
-	function isComment(tokens, i) {
-		return tokens[i].type === 'commentLine';
+	function isBuiltinMethod(tokens, i) {
+		return tokens[i].type === 'builtin';
 	}
 	function isCommentBlock(tokens, i) {
 		return tokens[i].type === 'commentStart';
@@ -281,18 +294,20 @@ function ASTBuilder() {
 		}
 		return i;
 	}
-	function findBlockIndexes(tokens, i) {
+	function findBlockIndexes(tokens, i, type) {
 		var i = i;
 		// thread TAG: { }
 		// function name() { }
 		// monitor label: { }
-		while (i++ < tokens.length) {
-			if (tokens[i].type === 'braceLeft') 
+		while (i < tokens.length) {
+			if (tokens[i].type === type) 
 				return {
 					start: i, 
 					end: tokens.indexOf(tokens[i].matchingToken)
 				};
+			i++;
 		}
+		return {start: 0, end: 0};
 	}
 	function isVariableDeclaration(tokens, i) {
 		if (tokens[i].type === 'typeModifier') { // global int x ...
