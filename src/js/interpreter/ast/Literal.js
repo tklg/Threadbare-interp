@@ -5,6 +5,7 @@ class Literal extends AbstractElement {
 	constructor() {
 		super();
 		this._type = "Literal";
+		this._valueType = "int";
 		this._value = null;
 		this._raw;
 	}
@@ -19,6 +20,21 @@ class Literal extends AbstractElement {
 	}
 	set raw(raw) {
 		this._raw = raw;
+	}
+	get valueType() {
+		return this._valueType;
+	}
+	set valueType(t) {
+		this._valueType = t;
+	}
+	step() {
+		
+	}
+	isDone() {
+		return true;
+	}
+	eval() {
+		return this;
 	}
 }
 export default Literal;

@@ -2,6 +2,9 @@
 //@import 'materialdesignicons';
 @import 'styles';
 
+* {
+	z-index: 1;
+}
 #LOGGERJS {
 	position: absolute;
 	top: 0;
@@ -12,4 +15,5 @@
 	word-wrap: break-word;
 	word-break: break-all;
 	white-space: pre;
+	z-index: 0;
 }

@@ -23,5 +23,19 @@ class VariableDeclarator extends AbstractElement {
 	set init(init) {
 		this._init = init;
 	}
+	set environment(env) {
+		super.environment = env;
+	}
+	step() {
+		if (!this._init.isDone()) {
+			this._init.step();
+		}
+	}
+	isDone() {
+		return this._init.isDone();
+	}
+	eval() {
+		return this._init.eval();
+	}
 }
 export default VariableDeclarator;

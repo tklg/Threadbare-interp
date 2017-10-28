@@ -30,5 +30,8 @@ class AbstractElement {
 	isDone() {
 		throw this._type + "::isDone() not implemented";
 	}
+	eval() {
+		throw this._type + "::eval() not implemented";
+	}
 }
 export default AbstractElement;

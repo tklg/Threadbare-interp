@@ -3,6 +3,7 @@ import Tokenizer from './Tokenizer.js';
 import TokenLinker from './TokenLinker.js';
 //import TreeBuilder from './TreeBuilder.js';
 import ASTBuilder from './ASTBuilder.js';
+import Eventify from './../Eventify.js';
 
 function Parser() {
 	const TAG = "Parser";
@@ -12,16 +13,20 @@ function Parser() {
 			var tkl = new TokenLinker();
 			//var trb = new TreeBuilder();
 			var ast = new ASTBuilder();
+			var event = Eventify.getInstance();
 			tkz.parse().then(tokens => {
 				//Log.d(TAG, tokens);
+				event.emit('tokens.parsed');
 				return tkl.link(tokens);
 			}).then(linkedTokens => {
 				//Log.d(TAG, linkedTokens);
 				//return trb.build(linkedTokens);
+				event.emit('tokens.ready');
 				return ast.parse(linkedTokens);
 			}).then(tree => {
 				// environments, and token sequence instructions
 				//Log.out(TAG, tree);
+				event.emit('ast.ready');
 				Log.out(TAG, tree);
 				resolve(tree);
 			}).catch(e => {

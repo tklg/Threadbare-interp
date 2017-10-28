@@ -6,11 +6,14 @@ class Environment {
 	addEntry(en) {
 		this.env[en.getName()] = en;
 	}
+	updateEntry(name, val) {
+		this.getEntry(name).setValue(val);
+	}
 	getEntry(name) {
 		return this.env[name] || (this.parentEnv ? this.parentEnv.getEntry(name) : null);
 	}
-	canAddEntry(name) {
-		return this.env[name] === undefined;
+	canAddEntry(entry) {
+		return this.env[entry.getName()] === undefined;
 	}
 }
 export default Environment;

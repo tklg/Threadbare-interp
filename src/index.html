@@ -10,28 +10,53 @@
 	</head>
 	<body>
 		<textarea id="e" style="height: 400px;width: 400px;">
+global int x = 5;
+thread {
+	x += 400;
+	print("x1 = " + x);
+}
+print("x2 = " + x);
+</textarea>
+<button id="step">step</button>
+<button id="run">run</button>
+		<div style="display: none">
 /* global int g = (2*(5+7))+(1-4); */
 // test comment
-thread P(x): {
+function f(x) {
+  print(x);
+}
+thread f(5);
+thread P: {
   int a1 = 1;
   a1++;
   a1 += 2;
   a1 = 5 / 2;
   print(a1);
 }
-</textarea>
-		<div style="display: none">
-			thread Q: {}
-thread {
-  int testInt = (1 + 2);
-  int b = testInt + 3 + 6;
-  print(b);
-}
 </div>
 	</body>
 	<script type="text/javascript" src="./js/threadbare.bundle.js"></script>
 	<script type="text/javascript">
-		var b = new ThreadBare();
-		b.interpret(document.getElementById('e').value);
+		var b;
+		init();
+		document.getElementById('step').addEventListener('click', function(e) {
+			b.step();
+		});
+		document.getElementById('run').addEventListener('click', function(e) {
+			if (b.isDone()) {
+				b = null;
+				init();
+			}
+			b.start();
+		});
+
+		function init() {
+			b = new ThreadBare();
+			b.on('any', handle);
+			b.interpret(document.getElementById('e').value, 'random');
+		}
+		function handle(ev, val) {
+			console.log(ev +" : " + val);
+		}
 	</script>
 </html>

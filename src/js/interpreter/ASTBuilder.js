@@ -76,7 +76,7 @@ function ASTBuilder() {
 
 				if (tokens[i + 1].value === '{') { // nameless thread
 					id.name = "THREAD_" + i;
-				} else { // find the name and opt. params
+				} else if (tokens[i + 1].type === 'label') { // find the name and opt. params
 					var tok = tokens[i + 1];
 					if (tok.type === 'label') {
 						id.name = tok.value;
@@ -94,6 +94,15 @@ function ASTBuilder() {
 						}
 					}
 					i++;
+				} else if (tokens[i + 1].type === 'function') { // thread gets body from function declaration
+					expression = new ThreadDeclaration();
+					var idx = findBlockIndexes(tokens, i + 1, 'parenLeft');
+					var paramValueTokens = tokens.slice(idx.start, idx.end);
+					//paramValueTokens = evalParamList(paramValueTokens);
+					expression.bodyFrom = 'function';
+					for (var el of paramValueTokens) {
+						//var 
+					}
 				}
 
 				expression.id = id;
@@ -116,16 +125,32 @@ function ASTBuilder() {
 				block.addToBody(expression);
 
 				i += subTokens.length;
+				continue;
 			} else if (isBuiltinMethod(tokens, i)) {
 				var expression = new BuiltinMethod();
 				expression.callee = tokens[i].value;
 				var indexes = findBlockIndexes(tokens, i, 'builtin');
 				var subTokens = tokens.slice(indexes.start + 1, indexes.end);
-				for (var j = 0; j < subTokens.length; j++) {
+				/*for (var j = 0; j < subTokens.length; j++) {
 					expression.addArgument(getSingleExpression([subTokens[j]]));
+				}*/
+				// add args split by comma tokens
+				var start = 0, end = 0;
+				var subsub = [];
+				for (var j = 0; j < subTokens.length; j++) {
+					//Log.d(TAG, subTokens[j]);
+					if (subTokens[j].type === 'comma') {
+						end = j;
+						subsub = subTokens.slice(start, end);
+						expression.addArgument(getSingleExpression(subsub));
+						start = j + 1;
+					}
 				}
+				subsub = subTokens.slice(start, subTokens.length);
+				expression.addArgument(getSingleExpression(subsub));
 				i += subTokens.length + 2;
 				block.addToBody(expression);
+				continue;
 			}
 			i++;
 		}
@@ -141,7 +166,12 @@ function ASTBuilder() {
 		if (isLiteral(tokens)) {
 			var lit = new Literal();
 			lit.value = tokens[0].value;
-			lit.raw = typeof tokens[0].value === 'string' ? '"'+tokens[0].value+'"' : ''+tokens[0].value;
+			lit.raw = (typeof tokens[0].value === 'number' ? tokens[0].value : '"'+tokens[0].value+'"');
+			var vstr = ''+tokens[0].value;
+			if (/^\d+$/.test(vstr) && !vstr.includes('.')) lit.valueType = "int";
+			else if (/^\d+$/.test(vstr)) lit.valueType = "double";
+			else if (/^.$/.test(vstr)) lit.valueType = "char";
+			else if (/^.+$/.test(vstr)) lit.valueType = "string";
 			return lit;
 		} else if (isIdentifier(tokens)) {
 			var id = new Identifier();
@@ -232,7 +262,7 @@ function ASTBuilder() {
 				leftIdent.name = tokens[0].value;
 				decl.id = leftIdent;
 				var cind = findCommaIndex(tokens);
-				if (tokens[1].value === '=') {
+				if (tokens[1] !== undefined && tokens[1].value === '=') {
 					var init = getSingleExpression(tokens.slice(2, cind));
 					decl.init = init;
 				}
@@ -252,7 +282,7 @@ function ASTBuilder() {
 		return tokens[i].type === 'commentStart';
 	}
 	function isLiteral(tokens) {
-		return tokens.length === 1 && ['valueInteger'].includes(tokens[0].type);
+		return tokens.length === 1 && ['valueInteger', 'valueChar', 'valueString'].includes(tokens[0].type);
 	}
 	function isBinaryExpression(tokens) {
 		return tokens.length >= 3
@@ -270,10 +300,11 @@ function ASTBuilder() {
 		return ['variableName'].includes(tokens[i].type) || ['++','--'].includes(tokens[i].value);
 	}
 	function isAssignmentExpression(tokens) {
-		return ['=','+=','-=','*=','/=','&=','|=','^='].includes(tokens[1].value);
+		return tokens[1] !== undefined && ['=','+=','-=','*=','/=','&=','|=','^='].includes(tokens[1].value);
 	}
 	function isUpdateExpression(tokens) {
 		var tok;
+		if (tokens[1] === undefined) return false;
 		if (tokens[0].type === 'operatorShorthand') tok = tokens[0];
 		else tok = tokens[1];
 		return ['++','--'].includes(tok.value);
@@ -318,7 +349,7 @@ function ASTBuilder() {
 		return false;
 	}
 	function isVariableDeclarator(tokens) {
-		if (tokens[0].type === 'variableName' && tokens[1].value === '=') { // x = ...
+		if (tokens[0].type === 'variableName'/* && tokens[1] !== undefined && tokens[1].value === '='*/) { // x = ...
 			return true;
 		}
 		return false;

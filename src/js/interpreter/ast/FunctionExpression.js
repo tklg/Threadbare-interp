@@ -29,5 +29,9 @@ class FunctionExpression extends AbstractElement {
 	set body(body) {
 		this._body = body;
 	}
+	set environment(env) {
+		super.environment = env;
+		this._body.environment = env;
+	}
 }
 export default FunctionExpression;

@@ -8,6 +8,7 @@ class ExpressionStatement extends AbstractElement {
 		this._type = "ExpressionStatement";
 		// instanceof AbstractExpression
 		this._expression;
+		this._hasRun = false;
 	}
 	get expression() {
 		return this._expression;
@@ -15,5 +16,20 @@ class ExpressionStatement extends AbstractElement {
 	set expression(exp) {
 		this._expression = exp;
 	}
+	set environment(env) {
+		super.environment = env;
+		this._expression.environment = env;
+	}
+	step() {
+		this._expression.step();
+		if (this._expression.isDone()) this._hasRun = true;
+	}
+	isDone() {
+		return this._expression.isDone() && this._hasRun;
+	}
+	eval() {
+		return this._expression.eval();
+	}
+
 }
 export default ExpressionStatement;

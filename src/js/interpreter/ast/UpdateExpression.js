@@ -31,5 +31,29 @@ class UpdateExpression extends AbstractElement {
 	set isPrefix(prefix) {
 		this._prefix = prefix;
 	}
+	set environment(env) {
+		super.environment = env;
+		this._argument.environment = env;
+	}
+	step() {
+		/*if (!this._argument.isDone()) {
+			this._argument.step();
+		}*/
+		// this._arguemnt is always Identifier
+		var id = this._argument.eval();
+		this._orig = id;
+
+		if (this._operator === '++') id.value++;
+		else id.value--;
+
+		this._environment.updateEntry(this._argument.name, id);
+	}
+	isDone() {
+		return true;
+	}
+	eval() {
+		if (this._prefix) return this._orig;
+		else return this._argument.eval();
+	}
 }
 export default UpdateExpression;

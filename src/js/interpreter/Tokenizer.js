@@ -22,29 +22,30 @@ import BracketRightToken from './token/BracketRightToken.js';
 import CommentStartToken from './token/CommentStartToken.js';
 import CommentEndToken from './token/CommentEndToken.js';
 import FunctionToken from './token/FunctionToken.js';
+import FunctionDecToken from './token/FunctionDecToken.js';
 
 const tokenRegex = {
 	typeModifier: /^\s*(global|static|final|public|private|protected|atomic)/,
 	keyword: /^\s*(new|class)/,
 	primitiveType: /^\s*(char|short|int|float|double|long)/,
-	objectType: /^\s*([A-Z][a-zA-Z_]+[a-zA-Z0-9_]*)/,
-	variableName: /^\s*([a-z\$_]+[a-z0-9\$_\.]*)/i,
+	objectType: /^\s*([A-Z][a-zA-Z0-9_]+)/,
+	variableName: /^\s*([a-z\$_][a-z0-9\$_\.]*)/i,
 	operatorShorthand: /^\s*(\+\+|--|\+=|-=|\*=|\/=|%=|\^=|\|=|&=)/,
 	operator: /^\s*(\+|-|\*|\/|%|=|==|!=)/,
 	valueInteger: /^\s*(\d+)/,
 	valueChar: /^\s*'(.)'/,
-	valueString: /^\s*"(.+)"/,
+	valueString: /^\s*"(.+?)"/,
 	comma: /^\s*(,)/,
 	semicolon: /^\s*(;)/,
 	thread: /^\s*(thread)/,
 	functionDeclaration: /^\s*(function)/,
 	//atomic: /^\s*(atomic)\s*/,
-	label: /^\s*([a-z\$_]+[a-z0-9\$_]*):/i,
-	paramLabel: /^\s*((?:[a-z\$_]+[a-z0-9\$_]*)\s*\([a-z\$_]+[a-z0-9\$_, ]*\)):/i,
+	label: /^\s*([a-z\$_][a-z0-9\$_]*):/i,
+	builtin: /^\s*(print|sleep) *\(/, // func(
+	function: /^\s*([a-z\$_][a-z0-9\$_]*) *\(/, // func(
+	paramLabel: /^\s*((?:[a-z\$_][a-z0-9\$_]*)\s*\([a-z\$_][a-z0-9\$_, ]*\)):/i,
 	braceLeft: /^\s*({)/,
 	braceRight: /^\s*(})/,
-	builtin: /^\s*(print|sleep) *\(/, // func(
-	function: /^\s*([a-z\$_]+[a-z0-9\$_]*) *\(/, // func(
 	parenLeft: /^\s*(\()/,
 	parenRight: /^\s*(\))/,
 	bracketLeft: /^\s*(\[)/,
@@ -165,9 +166,13 @@ TokenUtil.getFromNameAndMatch = function(name, match, pos) {
 			//return TokenUtil.getOperatorToken(name, match, pos);
 			return new OpToken(name, match, pos);
 		case 'valueInteger': return new ValueToken(name, parseInt(match), pos);
+		case 'valueChar':
+		case 'valueString': return new ValueToken(name, match, pos);
 		case 'comma': return new ComToken(name, match, pos);
 		case 'semicolon': return new SemToken(name, match, pos);
 		case 'thread': return new ThreadToken(name, match, pos);
+		case 'functionDeclaration': return new FunctionDecToken(name, match, pos);
+		case 'function': return new FunctionToken(name, match, pos);
 		case 'label': return new LabelToken(name, match, pos);
 		case 'paramLabel': return new ParamLabelToken(name, match, pos);
 		case 'braceLeft': return new BraceLeftToken(name, match, pos);

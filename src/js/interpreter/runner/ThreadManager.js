@@ -1,9 +1,17 @@
+import Log from './../../logger/Log.js';
+import Eventify from './../../Eventify.js';
+
 var tm;
+const event = Eventify.getInstance();
+const TAG = "ThreadManager";
 
 class ThreadManager {
 	static getInstance(type) {
 		if (!tm) tm = new ThreadManager(type || ThreadType.RANDOM);
 		return tm;
+	}
+	static reset() {
+		tm = null;
 	}
 	constructor(type) { // random, queue
 		this.type = type;
@@ -12,30 +20,58 @@ class ThreadManager {
 	}
 	addThread(t) {
 		this.threads.push(t);
+		Log.d(TAG, "Added new thread: " + t.getId() + ", there are " + this.threads.length + " threads queued and " + (this.current ? 1 : 0) + " threads active.");
+		if (this.current === null) this.current = this.threads.shift();
 	}
 	removeThread(t) {
+		var id = t.getId();
+		if (this.current === t) this.current = this.threads.shift();
+		Log.d(TAG, "Removed thread: " + id);
 		this.threads = this.threads.filter(x => x != t);
 	}
 	set(thread) {
 		this.threads.push(this.current);
 		this.current = thread;
+		if (!this.threads.includes(thread)) this.addThread(thread);
 	}
 	next() {
+		if (this.threads.length < 1) return;
+		else if (this.threads.length === 1 && this.current !== null) {
+			if (this.type === ThreadType.QUEUE) {
+				var tmp = this.threads.shift();
+				this.threads.push(this.current);
+				this.current = tmp;
+			} else {
+				if (Math.random() > 0.5) {
+					var tmp = this.threads.shift();
+					this.threads.push(this.current);
+					this.current = tmp;
+				}
+			}
+			return;
+		}
 		var i = this.threads.length;
 		do {
 			if (this.type === ThreadType.QUEUE) {
+				var tmp = this.threads.shift();
 				this.threads.push(this.current);
-				this.current = this.threads.shift();
+				this.current = tmp;
 			} else {
 				this.current = this.threads[Math.floor(Math.random() * this.threads.length)];
 			}
-		} while (this.current.isBlocked() && i-- > 0);
+			i--;
+		} while (this.current.isBlocked() && i > 0);
+		event.emit("thread.switch", "tid:"+this.current.getId());
 	}
 	current() {
 		return this.current;
 	}
 	step() {
 		if (this.current) this.current.step();
+		if (this.current && this.current.isDone()) this.removeThread(this.current);
+	}
+	isDone() {
+		return this.threads.length === 0 && this.current == null;
 	}
 }
 const ThreadType = {

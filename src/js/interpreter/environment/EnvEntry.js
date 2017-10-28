@@ -15,7 +15,7 @@ class EnvEntry {
 	getName() {
 		return this.name;
 	}
-	setTag(tag) {
+	addTag(tag) {
 		if (!this.tags.includes(tag)) this.tags.push(tag);
 	}
 	canModifyEntry() {

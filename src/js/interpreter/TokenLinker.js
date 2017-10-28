@@ -43,6 +43,7 @@ function TokenLinker() {
 								sub.stop = +j;
 								linkTokens(tokens, sub.start, sub.stop);
 							}
+							break;
 						} else {
 							balance--;
 						}
@@ -71,6 +72,7 @@ function TokenLinker() {
 								sub.stop = +j;
 								linkTokens(tokens, sub.start, sub.stop);
 							}
+							break;
 						} else {
 							balance--;
 						}
@@ -83,12 +85,14 @@ function TokenLinker() {
 			} else if (tokens[i] instanceof FunctionToken && !tokens[i].matchingToken) { // a function is matched by name( so it needs a closing )
 				var balance = 0;
 				var sub = null;
-				for (var j = i + 1; j < stopInd; j++) {
+				//console.log("found func at " + i);
+				for (var j = i; j < stopInd; j++) {
 					if (balance < 0) {
 						throw `Unmatched FunctionToken at: Line ${tokens[i].pos.row}, Column ${tokens[i].pos.col}.`;
 					}
 					if (tokens[j] instanceof ParenRightToken) {
 						if (balance === 0) {
+							//console.log("found closing ) at " + j);
 							var left = tokens[i];
 							var right = tokens[j];
 							left.matchingToken = right;
@@ -98,6 +102,7 @@ function TokenLinker() {
 								sub.stop = +j;
 								linkTokens(tokens, sub.start, sub.stop);
 							}
+							break;
 						} else {
 							balance--;
 						}
@@ -125,6 +130,7 @@ function TokenLinker() {
 								sub.stop = +j;
 								linkTokens(tokens, sub.start, sub.stop);
 							}
+							break;
 						} else {
 							balance--;
 						}
@@ -153,6 +159,7 @@ function TokenLinker() {
 								// dont bother linking tokens in comments
 								//linkTokens(tokens, sub.start, sub.stop);
 							}
+							break;
 						/*} else {
 							balance--;
 						}*/

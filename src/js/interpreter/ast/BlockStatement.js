@@ -14,6 +14,12 @@ class BlockStatement extends AbstractElement {
 	get body() {
 		return this._body;
 	}
+	set environment(env) {
+		super.environment = env;
+		for (var i of this._body) {
+			i.environment = env;
+		}
+	}
 	step() {
 		var expr = this._body[this._stepIndex];
 		if (!expr.isDone()) {
