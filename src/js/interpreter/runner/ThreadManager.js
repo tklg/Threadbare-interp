@@ -20,14 +20,17 @@ class ThreadManager {
 	}
 	addThread(t) {
 		this.threads.push(t);
-		Log.d(TAG, "Added new thread: " + t.getId() + ", there are " + this.threads.length + " threads queued and " + (this.current ? 1 : 0) + " threads active.");
+		//Log.d(TAG, "Added new thread: " + t.getId() + ", there are " + this.threads.length + " threads queued and " + (this.current ? 1 : 0) + " threads active.");
+		event.emit('threads.add', t.getId(), this.threads.length, (this.current ? 1 : 0));
 		if (this.current === null) this.current = this.threads.shift();
 	}
 	removeThread(t) {
 		var id = t.getId();
-		if (this.current === t) this.current = this.threads.shift();
-		Log.d(TAG, "Removed thread: " + id);
+		//if (this.current === t) this.current = this.threads.shift();
+		//Log.d(TAG, "Removed thread: " + id);
+		event.emit('threads.remove', id);
 		this.threads = this.threads.filter(x => x != t);
+		this.current = this.threads[0];
 	}
 	set(thread) {
 		this.threads.push(this.current);
@@ -57,7 +60,9 @@ class ThreadManager {
 				this.threads.push(this.current);
 				this.current = tmp;
 			} else {
+				this.threads.push(this.current);
 				this.current = this.threads[Math.floor(Math.random() * this.threads.length)];
+				this.threads = this.threads.filter(t => t !== this.current);
 			}
 			i--;
 		} while (this.current.isBlocked() && i > 0);
@@ -71,7 +76,10 @@ class ThreadManager {
 		if (this.current && this.current.isDone()) this.removeThread(this.current);
 	}
 	isDone() {
-		return this.threads.length === 0 && this.current == null;
+		return this.current == null && this.threads.length === 0;
+			/*&& this.threads.reduce((a, t) => {
+				a && t.isDone();
+			}, true);*/
 	}
 }
 const ThreadType = {

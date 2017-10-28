@@ -41,7 +41,7 @@ const tokenRegex = {
 	functionDeclaration: /^\s*(function)/,
 	//atomic: /^\s*(atomic)\s*/,
 	label: /^\s*([a-z\$_][a-z0-9\$_]*):/i,
-	builtin: /^\s*(print|sleep) *\(/, // func(
+	builtin: /^\s*(print|error|sleep) *\(/, // func(
 	function: /^\s*([a-z\$_][a-z0-9\$_]*) *\(/, // func(
 	paramLabel: /^\s*((?:[a-z\$_][a-z0-9\$_]*)\s*\([a-z\$_][a-z0-9\$_, ]*\)):/i,
 	braceLeft: /^\s*({)/,

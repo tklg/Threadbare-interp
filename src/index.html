@@ -12,10 +12,14 @@
 		<textarea id="e" style="height: 400px;width: 400px;">
 global int x = 5;
 thread {
-	x += 400;
+	x = x + 400;
 	print("x1 = " + x);
 }
-print("x2 = " + x);
+thread P: {
+	x = x + 200;
+	print("x2 = " + x);
+}
+print("x3 = " + x);
 </textarea>
 <button id="step">step</button>
 <button id="run">run</button>

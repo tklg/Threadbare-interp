@@ -13,9 +13,7 @@ import Eventify from './Eventify.js';
 			i.interpret(str.trim())
 			.then(tree => {
 				runner = new Runner(tree, threadType);
-				Log.d(TAG, runner);
-
-				//runner.step();
+				//Log.d(TAG, runner);
 			})
 			.catch(e => {
 				Eventify.getInstance().emit('interpret.error', e);

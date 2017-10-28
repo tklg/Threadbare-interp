@@ -54,7 +54,13 @@ class BuiltinMethod extends AbstractElement {
 				//Log.d("STDOUT", res);
 				//Log.out("stdout", res);
 				event.emit('stdout', res);
-				// EventEmitter.emit('print', res);
+				break;
+			case 'error':
+				var res = '';
+				for (var s of this._arguments) {
+					res += s.value;
+				}
+				event.emit('stderr', res);
 				break;
 		}
 		this._hasRun = true;

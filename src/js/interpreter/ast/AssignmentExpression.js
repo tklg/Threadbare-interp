@@ -11,7 +11,7 @@ class AssignmentExpression extends AbstractElement {
 		// not a literal
 		this._left;
 		this._right;
-		this._hasRun = false;
+		this._stepIndex = 0;
 	}
 	get operator() {
 		return this._operator;
@@ -39,27 +39,34 @@ class AssignmentExpression extends AbstractElement {
 	step() {
 		var left = this._left;
 		var right = this._right;
-		if (!right.isDone()) {
+		if (!left.isDone()) {
+			left.step();
+			return;
+		} else if (!right.isDone()) {
 			right.step();
 			return;
 		} else {
-			var lVal = left.eval(); // left side will be an identifier
-			// or a memberexpression, but thats for later
-			// lVal will be a literal from the env
-			
-			var rVal = right.eval();
+			if (this._stepIndex === 0) {
+				this._lVal = left.eval(); // left side will be an identifier
+				// or a memberexpression, but thats for later
+				// lVal will be a literal from the env
+				
+				this._rVal = right.eval();
+				this._stepIndex++;
+			} else {
 
-			var newVal = getResult(this._operator, lVal.value, rVal.value);
+				var newVal = getResult(this._operator, this._lVal.value, this._rVal.value);
 
-			var lit = new Literal();
-			lit.value = newVal;
-			lit.valueType = lVal.valueType;
-			this._environment.updateEntry(left.name, lit);
-			this._hasRun = true;
+				var lit = new Literal();
+				lit.value = newVal;
+				lit.valueType = this._lVal.valueType;
+				this._environment.updateEntry(left.name, lit);
+				this._stepIndex++;
+			}
 		}
 	}
 	isDone() {
-		return this._left.isDone() && this._right.isDone() && this._hasRun;
+		return this._left.isDone() && this._right.isDone() && this._stepIndex === 2;
 	}
 }
 
