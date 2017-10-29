@@ -171,6 +171,7 @@ function ASTBuilder() {
 			if (/^\d+$/.test(vstr) && !vstr.includes('.')) lit.valueType = "int";
 			else if (/^\d+$/.test(vstr)) lit.valueType = "double";
 			else if (/^.$/.test(vstr)) lit.valueType = "char";
+			else if (/^(?:true|false)$/.test(vstr)) lit.valueType = "boolean";
 			else if (/^.+$/.test(vstr)) lit.valueType = "string";
 			return lit;
 		} else if (isIdentifier(tokens)) {
@@ -282,7 +283,7 @@ function ASTBuilder() {
 		return tokens[i].type === 'commentStart';
 	}
 	function isLiteral(tokens) {
-		return tokens.length === 1 && ['valueInteger', 'valueChar', 'valueString'].includes(tokens[0].type);
+		return tokens.length === 1 && ['valueInteger', 'valueChar', 'valueString', 'valueBool'].includes(tokens[0].type);
 	}
 	function isBinaryExpression(tokens) {
 		return tokens.length >= 3

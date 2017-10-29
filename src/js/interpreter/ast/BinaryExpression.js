@@ -43,7 +43,7 @@ class BinaryExpression extends AbstractElement {
 		if (!left.isDone()) {
 			left.step();
 			return;
-		} else if (!right.isDone()) {
+		} else if (!right.isDone() && !(['!','~'].includes(this._operator))) {
 			right.step();
 			return;
 		} else {
@@ -71,6 +71,14 @@ function getResult(op, x, y) {
 		case '&': return x & y;
 		case '|': return x | y;
 		case '^': return x ^ y;
+		case '>>': return x >> y;
+		case '<<': return x << y;
+		case '==': return x == y;
+		case '!=': return x != y;
+		case '>': return x > y;
+		case '<': return x < y;
+		case '>=': return x >= y;
+		case '<=': return x <= y;
 	}
 }
 

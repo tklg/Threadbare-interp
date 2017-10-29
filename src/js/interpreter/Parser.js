@@ -17,9 +17,14 @@ function Parser() {
 			tkz.parse().then(tokens => {
 				//Log.d(TAG, tokens);
 				event.emit('tokens.parsed');
+
+				// also go over the token list and validate that
+				// no definitions happen before the previous one
+				// has been closed with a semicolon
+
 				return tkl.link(tokens);
 			}).then(linkedTokens => {
-				//Log.d(TAG, linkedTokens);
+				Log.d(TAG, linkedTokens);
 				//return trb.build(linkedTokens);
 				event.emit('tokens.ready');
 				return ast.parse(linkedTokens);

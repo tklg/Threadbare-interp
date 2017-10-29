@@ -8,6 +8,7 @@ import BracketRightToken from './token/BracketRightToken.js';
 import CommentStartToken from './token/CommentStartToken.js';
 import CommentEndToken from './token/CommentEndToken.js';
 import FunctionToken from './token/FunctionToken.js';
+import ControlFlowToken from './token/ControlFlowToken.js';
 
 function TokenLinker() {
 	this.link = function(tokens) {
@@ -107,6 +108,64 @@ function TokenLinker() {
 							balance--;
 						}
 					} else if (tokens[j] instanceof ParenLeftToken) {
+						balance++;
+						if (sub === null) sub = {start: +j, stop: null};
+						//linkTokens(tokens, j, stopInd);
+					}
+				}
+			} else if (tokens[i] instanceof ControlFlowToken && !tokens[i].matchingToken && tokens[i].type === 'controlflow') { // while, for, if (
+				var balance = 0;
+				var sub = null;
+				//console.log("found func at " + i);
+				for (var j = i; j < stopInd; j++) {
+					if (balance < 0) {
+						throw `Unmatched ControlFlowToken at: Line ${tokens[i].pos.row}, Column ${tokens[i].pos.col}.`;
+					}
+					if (tokens[j] instanceof ParenRightToken) {
+						if (balance === 0) {
+							var left = tokens[i];
+							var right = tokens[j];
+							left.matchingToken = right;
+							right.matchingToken = left;
+
+							if (sub !== null) {
+								sub.stop = +j;
+								linkTokens(tokens, sub.start, sub.stop);
+							}
+							break;
+						} else {
+							balance--;
+						}
+					} else if (tokens[j] instanceof ParenLeftToken) {
+						balance++;
+						if (sub === null) sub = {start: +j, stop: null};
+						//linkTokens(tokens, j, stopInd);
+					}
+				}
+			} else if (tokens[i] instanceof ControlFlowToken && !tokens[i].matchingToken && tokens[i].type === 'controlflowNoCond') { // do, else {
+				var balance = 0;
+				var sub = null;
+				//console.log("found func at " + i);
+				for (var j = i; j < stopInd; j++) {
+					if (balance < 0) {
+						throw `Unmatched ControlFlow(NoCond)Token at: Line ${tokens[i].pos.row}, Column ${tokens[i].pos.col}.`;
+					}
+					if (tokens[j] instanceof BraceRightToken) {
+						if (balance === 0) {
+							var left = tokens[i];
+							var right = tokens[j];
+							left.matchingToken = right;
+							right.matchingToken = left;
+
+							if (sub !== null) {
+								sub.stop = +j;
+								linkTokens(tokens, sub.start, sub.stop);
+							}
+							break;
+						} else {
+							balance--;
+						}
+					} else if (tokens[j] instanceof BraceLeftToken) {
 						balance++;
 						if (sub === null) sub = {start: +j, stop: null};
 						//linkTokens(tokens, j, stopInd);

@@ -23,7 +23,7 @@ class Runner {
 		this.delay = 1;
 		this.interval = null;
 
-		Log.d(TAG, this.tm);
+		//Log.d(TAG, this.tm);
 	}
 	step() {
 		//Log.d(TAG, "step");
@@ -42,7 +42,7 @@ class Runner {
 		this.interval = setInterval(this.step.bind(this), this.delay);
 	}
 	stop() {
-		Log.d("DONE");
+		event.emit('runner.done');
 		clearInterval(this.interval);
 		//this.init(this._tree);
 	}

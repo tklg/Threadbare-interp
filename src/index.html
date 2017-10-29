@@ -11,32 +11,17 @@
 	<body>
 		<textarea id="e" style="height: 400px;width: 400px;">
 global int x = 5;
-thread {
-	x = x + 400;
-	print("x1 = " + x);
-}
-thread P: {
-	x = x + 200;
-	print("x2 = " + x);
-}
-print("x3 = " + x);
+boolean y = true;
+/*if (true) {
+	print(x);
+} else {
+	print(0);
+}*/
 </textarea>
 <button id="step">step</button>
 <button id="run">run</button>
-		<div style="display: none">
-/* global int g = (2*(5+7))+(1-4); */
-// test comment
-function f(x) {
-  print(x);
-}
-thread f(5);
-thread P: {
-  int a1 = 1;
-  a1++;
-  a1 += 2;
-  a1 = 5 / 2;
-  print(a1);
-}
+<div style="display: none">
+
 </div>
 	</body>
 	<script type="text/javascript" src="./js/threadbare.bundle.js"></script>
@@ -60,7 +45,15 @@ thread P: {
 			b.interpret(document.getElementById('e').value, 'random');
 		}
 		function handle(ev, val) {
-			console.log(ev +" : " + val);
+			if (ev.indexOf('error') > -1) {
+				console.error(ev +" : " + val);
+				return;
+			}
+			switch (ev) {
+				case 'stdout': return console.info(ev +" : %c" + val, 'color:#9977ee');
+				case 'stderr': return console.error(ev +" : " + val);
+				default: return console.log(ev +" : %c" + val, 'color:#888');
+			}
 		}
 	</script>
 </html>

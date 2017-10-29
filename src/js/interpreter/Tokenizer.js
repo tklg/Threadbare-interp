@@ -1,12 +1,9 @@
 import Log from './../logger/Log.js';
 
 import TypeModifierGlobalToken from './token/TypeModifierGlobalToken.js';
-import PrimitiveIntToken from './token/PrimitiveIntToken.js';
+import PrimitiveToken from './token/PrimitiveToken.js';
 import VarNameToken from './token/VarNameToken.js';
-import OpAdditionToken from './token/OpAdditionToken.js';
 import OpToken from './token/OpToken.js';
-import OpAssignmentToken from './token/OpAssignmentToken.js';
-import OpEqualityToken from './token/OpEqualityToken.js';
 import ValueToken from './token/ValueToken.js';
 import ComToken from './token/ComToken.js';
 import SemToken from './token/SemToken.js';
@@ -23,20 +20,24 @@ import CommentStartToken from './token/CommentStartToken.js';
 import CommentEndToken from './token/CommentEndToken.js';
 import FunctionToken from './token/FunctionToken.js';
 import FunctionDecToken from './token/FunctionDecToken.js';
+import ControlFlowToken from './token/ControlFlowToken.js';
 
 const tokenRegex = {
 	typeModifier: /^\s*(global|static|final|public|private|protected|atomic)/,
 	keyword: /^\s*(new|class)/,
-	primitiveType: /^\s*(char|short|int|float|double|long)/,
+	primitiveType: /^\s*(char|short|int|float|double|long|boolean)/,
 	objectType: /^\s*([A-Z][a-zA-Z0-9_]+)/,
 	variableName: /^\s*([a-z\$_][a-z0-9\$_\.]*)/i,
-	operatorShorthand: /^\s*(\+\+|--|\+=|-=|\*=|\/=|%=|\^=|\|=|&=)/,
-	operator: /^\s*(\+|-|\*|\/|%|=|==|!=)/,
+	operatorShorthand: /^\s*(\+\+|--|\+=|-=|\*=|\/=|%=|\^=|\|=|&=|>>=|<<=)/,
+	operator: /^\s*(\+|-|\*|\/|%|=|==|!=|>>|<<)/,
 	valueInteger: /^\s*(\d+)/,
 	valueChar: /^\s*'(.)'/,
 	valueString: /^\s*"(.+?)"/,
+	valueBool: /^\s*(true|false)/,
 	comma: /^\s*(,)/,
 	semicolon: /^\s*(;)/,
+	controlflow: /^\s*(while|for|if) *\(/, // while ()
+	controlflowNoCond: /^\s*(do|else) *{/, // do {
 	thread: /^\s*(thread)/,
 	functionDeclaration: /^\s*(function)/,
 	//atomic: /^\s*(atomic)\s*/,
@@ -60,6 +61,8 @@ const matchOrder = [
 	'keyword',
 	'primitiveType',
 	'objectType',
+	'controlflow',
+	'controlflowNoCond',
 	'builtin',
 	'function',
 	'thread',
@@ -79,8 +82,9 @@ const matchOrder = [
 	'bracketRight',
 	'valueChar',
 	'valueString',
-	'variableName',
+	'valueBool',
 	'valueInteger',
+	'variableName',
 ];
 
 function Tokenizer(_str) {
@@ -93,7 +97,7 @@ function Tokenizer(_str) {
 	var lineNo = 1;
 	var index = 0;
 	var tokens = [];
-	var startedComment;
+	var startedComment, commentType;
 
 	this.parse = function() {
 		return new Promise((resolve, reject) => {
@@ -101,7 +105,7 @@ function Tokenizer(_str) {
 				try {
 					startedComment = false;
 					matchLineToTokens(linesArr.shift(), lineNo++);
-					if (startedComment) tokens.push(new CommentEndToken('commentEnd', '\n', {row: lineNo - 1, col: parsedStr.length, char: index}));
+					if (startedComment && commentType === 'line') tokens.push(new CommentEndToken('commentEnd', '\n', {row: lineNo - 1, col: parsedStr.length, char: index}));
 				} catch (e) {
 					reject(e);
 				}
@@ -139,7 +143,11 @@ function Tokenizer(_str) {
 					col: col,
 					char: index,
 				});
-				if (matched instanceof CommentStartToken) startedComment = true;
+				if (matched instanceof CommentStartToken) {
+					startedComment = true;
+					if (matched.value === '//') commentType = 'line';
+					else commentType = 'block';
+				}
 				if (matched instanceof CommentEndToken) startedComment = false;
 				break;
 			}
@@ -159,13 +167,14 @@ TokenUtil.getFromNameAndMatch = function(name, match, pos) {
 		case 'commentStart': return new CommentStartToken(name, match, pos);
 		case 'commentEnd': return new CommentEndToken(name, match, pos);
 		case 'typeModifier': return TokenUtil.getTypeModifierToken(name, match, pos);
-		case 'primitiveType': return TokenUtil.getPrimitiveTypeToken(name, match, pos);
+		case 'primitiveType': return new PrimitiveToken(name, match, pos);
 		case 'variableName': return new VarNameToken(name, match, pos);
 		case 'operator': 
 		case 'operatorShorthand':
 			//return TokenUtil.getOperatorToken(name, match, pos);
 			return new OpToken(name, match, pos);
 		case 'valueInteger': return new ValueToken(name, parseInt(match), pos);
+		case 'valueBool': return new ValueToken(name, match === 'true', pos);
 		case 'valueChar':
 		case 'valueString': return new ValueToken(name, match, pos);
 		case 'comma': return new ComToken(name, match, pos);
@@ -182,6 +191,8 @@ TokenUtil.getFromNameAndMatch = function(name, match, pos) {
 		case 'bracketLeft': return new BracketLeftToken(name, match, pos);
 		case 'bracketRight': return new BracketRightToken(name, match, pos);
 		case 'builtin': return new FunctionToken(name, match, pos);
+		case 'controlflow':
+		case 'controlflowNoCond': return new ControlFlowToken(name, match, pos);
 		default: throw "Invalid token type: " + name;
 	}
 }
@@ -195,14 +206,6 @@ TokenUtil.getPrimitiveTypeToken = function(name, match, pos) {
 	switch(match) {
 		case 'int': return new PrimitiveIntToken(name, match, pos);
 		default: throw "Invalid primitive type: " + match;
-	}
-}
-TokenUtil.getOperatorToken = function(name, match, pos) {
-	switch (match) {
-		case '+': return new OpAdditionToken(name, match, pos);
-		case '=': return new OpAssignmentToken(name, match, pos);
-		case '==': return new OpEqualityToken(name, match, pos);
-		default: throw "Invalid operator: " + match;
 	}
 }
 

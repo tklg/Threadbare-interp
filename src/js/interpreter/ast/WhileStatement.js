@@ -22,5 +22,15 @@ class WhileStatement extends AbstractElement {
 	set body(body) {
 		this._body = body;
 	}
+	set environment(env) {
+		super.environment = env;
+		this._body.environment = env;
+	}
+		// evaluate the test every step
+		// and immediately run the body if test is true
+	}
+	isDone() {
+
+	}
 }
 export default WhileStatement;

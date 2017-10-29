@@ -21,14 +21,14 @@ class ThreadManager {
 	addThread(t) {
 		this.threads.push(t);
 		//Log.d(TAG, "Added new thread: " + t.getId() + ", there are " + this.threads.length + " threads queued and " + (this.current ? 1 : 0) + " threads active.");
-		event.emit('threads.add', t.getId(), this.threads.length, (this.current ? 1 : 0));
+		event.emit('threads.add', 'tid:'+t.getId(), this.threads.length, (this.current ? 1 : 0));
 		if (this.current === null) this.current = this.threads.shift();
 	}
 	removeThread(t) {
 		var id = t.getId();
 		//if (this.current === t) this.current = this.threads.shift();
 		//Log.d(TAG, "Removed thread: " + id);
-		event.emit('threads.remove', id);
+		event.emit('threads.remove', 'tid:'+id);
 		this.threads = this.threads.filter(x => x != t);
 		this.current = this.threads[0];
 	}
