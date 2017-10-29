@@ -24,7 +24,7 @@ function Parser() {
 
 				return tkl.link(tokens);
 			}).then(linkedTokens => {
-				Log.d(TAG, linkedTokens);
+				//Log.d(TAG, linkedTokens);
 				//return trb.build(linkedTokens);
 				event.emit('tokens.ready');
 				return ast.parse(linkedTokens);

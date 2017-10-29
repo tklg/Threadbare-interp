@@ -10,13 +10,17 @@
 	</head>
 	<body>
 		<textarea id="e" style="height: 400px;width: 400px;">
-global int x = 5;
-boolean y = true;
-/*if (true) {
-	print(x);
-} else {
-	print(0);
-}*/
+int i = 0;
+thread Loop: {
+	while (i < 5) {
+		print(i);
+	}
+}
+thread Increment: {
+	while (i < 5) {
+		i++;
+	}
+}
 </textarea>
 <button id="step">step</button>
 <button id="run">run</button>
@@ -50,8 +54,8 @@ boolean y = true;
 				return;
 			}
 			switch (ev) {
-				case 'stdout': return console.info(ev +" : %c" + val, 'color:#9977ee');
-				case 'stderr': return console.error(ev +" : " + val);
+				case 'stdout': return console.info(Date.now() + ": " + ev +" : %c" + val, 'color:#9977ee');
+				case 'stderr': return console.error(Date.now() + ": " + ev +" : " + val);
 				default: return console.log(ev +" : %c" + val, 'color:#888');
 			}
 		}

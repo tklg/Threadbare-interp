@@ -81,8 +81,8 @@ function getResult(op, x, y) {
 		case "|=": return x | y;
 		case "^=": return x ^ y;
 		case "%=": return x % y;
-		case '>>=': return x >>= y;
-		case '<<=': return x <<= y;
+		case '>>=': return x >> y;
+		case '<<=': return x << y;
 	}
 }
 

@@ -38,11 +38,12 @@ class Runner {
 		this.tm.step();
 	}
 	start() {
-		this.stop();
+		event.emit('runner.start');
+		clearInterval(this.interval);
 		this.interval = setInterval(this.step.bind(this), this.delay);
 	}
 	stop() {
-		event.emit('runner.done');
+		event.emit('runner.stop');
 		clearInterval(this.interval);
 		//this.init(this._tree);
 	}

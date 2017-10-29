@@ -11,6 +11,9 @@ import AssignmentExpression from './ast/AssignmentExpression.js';
 import BlockStatement from './ast/BlockStatement.js';
 import ExpressionStatement from './ast/ExpressionStatement.js';
 import BuiltinMethod from './ast/BuiltinMethod.js';
+import IFStatement from './ast/IFStatement.js';
+import ForStatement from './ast/ForStatement.js';
+import WhileStatement from './ast/WhileStatement.js';
 
 function ASTBuilder() {
 	const TAG = "ASTBuilder";
@@ -59,6 +62,7 @@ function ASTBuilder() {
 				}
 
 				if (subTokens.length) {
+					//Log.d(JSON.parse(JSON.stringify(subTokens)));
 					var decs = findVariableDeclarator(subTokens);
 					//Log.d(decs);
 					for (var d of decs) {
@@ -149,6 +153,68 @@ function ASTBuilder() {
 				subsub = subTokens.slice(start, subTokens.length);
 				expression.addArgument(getSingleExpression(subsub));
 				i += subTokens.length + 2;
+				block.addToBody(expression);
+				continue;
+			} else if (isControlFlow(tokens, i)) {
+				// match for if, while, for
+
+				var expression;
+				var testTokens;
+				var cfBodyTokens, cfAlternateTokens;
+				var cfBody = new BlockStatement();
+
+				switch (tokens[i].value) {
+					case 'if':
+						expression = new IFStatement();
+						break;
+					case 'while':
+						expression = new WhileStatement();
+						break;
+					case 'for':
+						expression = new ForStatement();
+						break;
+				}
+				i++;
+				// find the tokens inside the test section ()
+				if (tokens[i].type === 'parenLeft') {
+					var indexes = findBlockIndexes(tokens, i, 'parenLeft');
+					testTokens = tokens.slice(indexes.start + 1, indexes.end);
+					//Log.d(TAG, testTokens);
+					if (!(expression instanceof ForStatement)) {
+						expression.test = getSingleExpression(testTokens);
+					} else {
+						//separate into 3 sections for(;;){}
+
+					}
+				} else {
+					throw "Expected ( at " + JSON.stringify(tokens[i].pos) + ", found " + tokens[i].value;
+				}
+
+				i += testTokens.length + 2;
+				// find tokens inside the body {}
+				if (tokens[i].type === 'braceLeft') {
+					var indexes = findBlockIndexes(tokens, i, 'braceLeft');
+					cfBodyTokens = tokens.slice(indexes.start + 1, indexes.end);
+					//Log.d(TAG, cfBodyTokens);
+					if (cfBodyTokens.length) getExpressions(cfBody, cfBodyTokens);
+				} else {
+					throw "Expected { at " + JSON.stringify(tokens[i].pos) + ", found " + tokens[i].value;
+				}
+				i += cfBodyTokens.length + 2;
+
+				if (expression instanceof IFStatement) {
+					expression.consequent = cfBody;
+				} else {
+					expression.body = cfBody;
+				}
+
+				// if IFStatement, check for an else
+				if (expression instanceof IFStatement && tokens[i].value === 'else') {
+					var resAlt = getControlFlowAlternate(tokens.slice(i));
+					expression.alternate = resAlt.body;
+					i += resAlt.length;
+				}
+
 				block.addToBody(expression);
 				continue;
 			}
@@ -252,6 +318,56 @@ function ASTBuilder() {
 		}
 		return bex;
 	}
+	function getControlFlowAlternate(tokens) {
+		var i = 1;
+		var tokLen = 0;
+		var body;
+		if (tokens[i].type === 'braceLeft') { // } else {
+			body = new BlockStatement();
+			var indexes = findBlockIndexes(tokens, i, 'braceLeft');
+			var subTokens = tokens.slice(indexes.start + 1, indexes.end);
+			if (subTokens.length) {
+				getExpressions(body, subTokens);
+			}
+			tokLen += subTokens.length + 2;
+		} else { // } else if () {
+			i++;
+			body = new IFStatement();
+			var testTokens, ifBodyTokens;
+			var ifBody = new BlockStatement();
+			// find the tokens inside the test section ()
+			if (tokens[i].type === 'parenLeft') {
+				var indexes = findBlockIndexes(tokens, i, 'parenLeft');
+				testTokens = tokens.slice(indexes.start + 1, indexes.end);
+				//Log.d(TAG, testTokens);
+				body.test = getSingleExpression(testTokens);
+			} else {
+				throw "Expected ( at " + JSON.stringify(tokens[i].pos) + ", found " + tokens[i].value;
+			}
+			i += testTokens.length + 2;
+			// find tokens inside the body {}
+			if (tokens[i].type === 'braceLeft') {
+				var indexes = findBlockIndexes(tokens, i, 'braceLeft');
+				ifBodyTokens = tokens.slice(indexes.start + 1, indexes.end);
+				//Log.d(TAG, ifBodyTokens);
+				if (ifBodyTokens.length) getExpressions(ifBody, ifBodyTokens);
+			} else {
+				throw "Expected { at " + JSON.stringify(tokens[i].pos) + ", found " + tokens[i].value;
+			}
+			i += ifBodyTokens.length + 2;
+			body.consequent = ifBody;
+			if (tokens[i] && tokens[i].value === 'else') {
+				var resAlt = getControlFlowAlternate(tokens.split(i));
+				body.alternate = resAlt.body;
+				tokLen += resAlt.length;
+			}
+		}
+		tokLen += i;
+		return {
+			body: body,
+			length: tokLen,
+		};
+	}
 	function findVariableDeclarator(tokens) {
 		var i = 0;
 		var x = tokens.length;
@@ -265,6 +381,7 @@ function ASTBuilder() {
 				var cind = findCommaIndex(tokens);
 				if (tokens[1] !== undefined && tokens[1].value === '=') {
 					var init = getSingleExpression(tokens.slice(2, cind));
+					//Log.d(tokens.slice(2, cind));
 					decl.init = init;
 				}
 				tokens.splice(0, cind + 1); // x,
@@ -282,6 +399,9 @@ function ASTBuilder() {
 	function isCommentBlock(tokens, i) {
 		return tokens[i].type === 'commentStart';
 	}
+	function isControlFlow(tokens, i) {
+		return ['controlflow'].includes(tokens[i].type);
+	}
 	function isLiteral(tokens) {
 		return tokens.length === 1 && ['valueInteger', 'valueChar', 'valueString', 'valueBool'].includes(tokens[0].type);
 	}
@@ -292,16 +412,19 @@ function ASTBuilder() {
 			}, false);
 	}
 	function isOperator(token) {
-		return ['+','-','*','/','%','^','&','|','&&','||'].includes(token.value)
+		return ['+','-','*','/','%','^','&','|','&&','||','==','!=','>','<','>=','<=','>>','<<'].includes(token.value);
+	}
+	function isUnary(token) {
+		return ['!','~'].includes(token.value);
 	}
 	function isIdentifier(tokens) {
-		return tokens.length === 1 && ['variableName'].includes(tokens[0].type)
+		return tokens.length === 1 && ['variableName'].includes(tokens[0].type);
 	}
 	function isExpressionStatement(tokens, i) {
 		return ['variableName'].includes(tokens[i].type) || ['++','--'].includes(tokens[i].value);
 	}
 	function isAssignmentExpression(tokens) {
-		return tokens[1] !== undefined && ['=','+=','-=','*=','/=','&=','|=','^='].includes(tokens[1].value);
+		return tokens[1] !== undefined && ['=','+=','-=','*=','/=','&=','|=','^=','>>=','<<='].includes(tokens[1].value);
 	}
 	function isUpdateExpression(tokens) {
 		var tok;

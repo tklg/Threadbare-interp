@@ -35,11 +35,16 @@ class BuiltinMethod extends AbstractElement {
 		}
 	}
 	step() {
-		if (this._argsIndex < this._arguments.length) {
-			this._arguments[this._argsIndex].step();
-			if (this._arguments[this._argsIndex].isDone()) {
+		if (this._argsIndex < this._arguments.length || (this._arguments[this._argsIndex] !== undefined && !this._arguments[this._argsIndex].isDone())) {
+			if (!this._arguments[this._argsIndex].isDone())
+				this._arguments[this._argsIndex].step();
+			/*if (this._arguments[this._argsIndex].isDone()) {
 				// set argument to evaluated Identifier
 				this._arguments[this._argsIndex] = this._arguments[this._argsIndex].eval();
+				this._argsIndex++;
+			}*/
+			// do not modify the actual arguments
+			if (this._arguments[this._argsIndex].isDone()) {
 				this._argsIndex++;
 			}
 			return;
@@ -49,7 +54,7 @@ class BuiltinMethod extends AbstractElement {
 			case 'print':
 				var res = '';
 				for (var s of this._arguments) {
-					res += s.value;
+					res += s.eval().value;
 				}
 				//Log.d("STDOUT", res);
 				//Log.out("stdout", res);
@@ -58,7 +63,7 @@ class BuiltinMethod extends AbstractElement {
 			case 'error':
 				var res = '';
 				for (var s of this._arguments) {
-					res += s.value;
+					res += s.eval().value;
 				}
 				event.emit('stderr', res);
 				break;

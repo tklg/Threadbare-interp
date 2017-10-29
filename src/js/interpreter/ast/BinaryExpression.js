@@ -49,7 +49,11 @@ class BinaryExpression extends AbstractElement {
 		} else {
 			var n = new Literal();
 			n.value = getResult(this._operator, left.eval().value, right.eval().value);
-			n.valueType = this._operator === '/' ? 'double' : getType(left.valueType, right.valueType);
+			n.valueType = this._operator === '/' 
+							? 'double'
+							: ['==','!=','>=','<=','>','<'].includes(this._operator) 
+								? 'boolean' 
+								: getType(left.valueType, right.valueType);
 			this._evaluated = n;
 		}
 	}

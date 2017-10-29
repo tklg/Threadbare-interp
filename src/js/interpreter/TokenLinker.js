@@ -113,7 +113,7 @@ function TokenLinker() {
 						//linkTokens(tokens, j, stopInd);
 					}
 				}
-			} else if (tokens[i] instanceof ControlFlowToken && !tokens[i].matchingToken && tokens[i].type === 'controlflow') { // while, for, if (
+			} /*else if (tokens[i] instanceof ControlFlowToken && !tokens[i].matchingToken && tokens[i].type === 'controlflow') { // while, for, if (
 				var balance = 0;
 				var sub = null;
 				//console.log("found func at " + i);
@@ -171,7 +171,7 @@ function TokenLinker() {
 						//linkTokens(tokens, j, stopInd);
 					}
 				}
-			} else if (tokens[i] instanceof BracketLeftToken && !tokens[i].matchingToken) {
+			}*/ else if (tokens[i] instanceof BracketLeftToken && !tokens[i].matchingToken) {
 				var balance = 0;
 				var sub = null;
 				for (var j = i + 1; j < stopInd; j++) {

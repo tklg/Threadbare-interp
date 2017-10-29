@@ -23,8 +23,8 @@ function Thread(exp, env) {
 				event.emit('thread.done', this._id);
 			}
 		} catch (e) {
-			event.emit('thread.error', e);
-			//throw e;
+			//event.emit('thread.error', e);
+			throw e;
 		}
 	}
 	this.isDone = function() {

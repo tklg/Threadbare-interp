@@ -4,7 +4,7 @@ import Log from './../../logger/Log.js';
 const TAG = 'IFStatement';
 
 // if (test) { consequent } else { alternate }
-class IFStatement {
+class IFStatement extends AbstractElement {
 	constructor() {
 		super();
 		this._type = "IFStatement";
@@ -14,6 +14,7 @@ class IFStatement {
 		this._consequent;
 		// instance of BlockStatement or IFStatememt or null
 		this._alternate = null;
+		this._body = undefined;
 	} 
 	get test() {
 		return this._test;
@@ -24,7 +25,7 @@ class IFStatement {
 	get consequent() {
 		return this._consequent;
 	}
-	set consequent(left) {
+	set consequent(consequent) {
 		this._consequent = consequent;
 	}
 	get alternate() {
@@ -37,14 +38,26 @@ class IFStatement {
 		super.environment = env;
 		this._test.environment = env;
 		this._consequent.environment = env;
-		this._alternate.environment = env;
+		if (this._alternate) this._alternate.environment = env;
 	}
 	step() {
 		// evaluate the test, 
 		// then enter and stay in either of conditions
+		if (!this._test.isDone()) {
+			this._test.step();
+			return;
+		} else if (!this._body) {
+			var t = this._test.eval();
+			if (t.value) this._body = this._consequent;
+			else this._body = this._alternate;
+			return;
+		} else if (!this._body.isDone()) {
+			this._body.step();
+			return;
+		}
 	}
 	isDone() {
-
+		return this._body && this._body.isDone();
 	}
 }
 

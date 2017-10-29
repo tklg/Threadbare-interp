@@ -30,7 +30,8 @@ class ThreadManager {
 		//Log.d(TAG, "Removed thread: " + id);
 		event.emit('threads.remove', 'tid:'+id);
 		this.threads = this.threads.filter(x => x != t);
-		this.current = this.threads[0];
+		//this.current = this.threads[0];
+		this.current = this.threads.shift();
 	}
 	set(thread) {
 		this.threads.push(this.current);
