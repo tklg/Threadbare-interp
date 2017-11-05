@@ -8,24 +8,18 @@ class MethodDefinition extends AbstractElement {
 		this._type = "MethodDefinition";
 		// instance of Identifier (method name)
 		this._key;
-		this._computed = false;
 		// instance of FunctionExpression
 		this._value;
 		// 'constructor' or 'method'
 		this._kind = "method";
-		this._static = false;
+		this._isStatic = false;
+		this._visibility = 'public';
 	}
 	get key() {
 		return this._key;
 	}
 	set key(key) {
 		this._key = key;
-	}
-	get isComputed() {
-		return this._computed;
-	}
-	set isComputed(com) {
-		this._computed = com;
 	}
 	get value() {
 		return this._value;
@@ -40,10 +34,16 @@ class MethodDefinition extends AbstractElement {
 		this._kind = kind;
 	}
 	get isStatic() {
-		return this._static;
+		return this._isStatic;
 	}
-	set isStatic(static) {
-		this._static = static;
+	set isStatic(isStatic) {
+		this._isStatic = isStatic;
+	}
+	get visibility() {
+		return this._visibility;
+	}
+	set visibility(v) {
+		this._visibility = v;
 	}
 }
 export default MethodDefinition;

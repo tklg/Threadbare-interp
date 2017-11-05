@@ -1,7 +1,8 @@
 import AbstractElement from './AbstractElement.js';
 import ClassManager from './class/ClassManager.js';
-
+import Log from './../../logger/Log.js';
 // x();
+const TAG = "CallExpression";
 class CallExpression extends AbstractElement {
 	constructor() {
 		super();
@@ -38,15 +39,36 @@ class CallExpression extends AbstractElement {
 		}
 	}
 	eval() {
-		return this._callee;
+		return this._body.eval();
 	}
 	step() {
-		const man = ClassManager.getInstance();
-		this._argsIndex++;
-		this._hasRun = true;
+		if (this._argsIndex < this._arguments.length) {
+			if (!this._arguments[this._argsIndex].isDone()) {
+				this._arguments[this._argsIndex].step();
+				return;
+			}
+			//Log.d("finished arg: " + this._argsIndex);
+			this._argsIndex++;
+			return;
+		} else if (!this._body) {
+			if (this._isConstructor) {
+
+			} else {
+				// get body from function, inject params into its env
+				var fe = this._environment.getEntry(this._callee).getValue();
+				this._body = fe.cloneBody(this._arguments);
+				//Log.d("cloned body");
+			}
+			return;
+		} else if (!this._body.isDone()) {
+			//Log.d(this._body);
+			this._body.step();
+			//Log.d(this._body.isDone());
+		}
 	}
 	isDone() {
-		return this._argsIndex === this._arguments.length && this._hasRun;
+		return this._argsIndex === this._arguments.length
+			&& this._body && this._body.isDone();
 	}
 }
 export default CallExpression;

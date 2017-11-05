@@ -33,7 +33,7 @@ class BlockStatement extends AbstractElement {
 		}
 	}
 	isDone() {
-		return this._stepIndex === this._body.length;
+		return this._stepIndex === this._body.length && this._hasRun;
 	}
 }
 export default BlockStatement;

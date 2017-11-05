@@ -4,14 +4,20 @@ import Eventify from './../../Eventify.js';
 
 const event = Eventify.getInstance();
 const TAG = "Thread";
-function Thread(exp, env) {
-	var expression = clone(exp, false, Infinity); // create a copy of the AST for the level the thread was created at
+function Thread(exp, env, c) {
+	var expression;
+	if (!c) {
+		// create a copy of the AST for the level the thread was created at
+		expression = clone(exp, false, Infinity);
+	} else {
+		expression = exp;
+	}
 	var environment = env;
 	var blocked = false;
 
 	this._id = 'noid';
 
-	expression.environment = environment;
+	if (environment) expression.environment = environment;
 
 	this.getId = function() {
 		return this._id;

@@ -18,6 +18,7 @@ import ConstructorFunctionExpression from './ast/ConstructorFunctionExpression.j
 import IFStatement from './ast/IFStatement.js';
 import ForStatement from './ast/ForStatement.js';
 import WhileStatement from './ast/WhileStatement.js';
+import MethodDefinition from './ast/MethodDefinition.js';
 import ClassDeclaration from './ast/ClassDeclaration.js';
 import ClassBody from './ast/ClassBody.js';
 
@@ -54,6 +55,10 @@ function ASTBuilder() {
 			// ends in a SemToken
 			else if (isVariableDeclaration(tokens, i)) {
 				if (isClassConstructorDeclaration(tokens, i)) {
+					expression = new MethodDefinition();
+					var definitionBody = new ConstructorFunctionExpression();
+					var body = new BlockStatement();
+
 					var className = tokens[i + 1].value;
 					var indexes = findBlockIndexes(tokens, i, 'function');
 					var paramTokens = tokens.slice(indexes.start + 1, indexes.end);
@@ -63,10 +68,11 @@ function ASTBuilder() {
 					var subTokens = tokens.slice(indexes.start + 1, indexes.end);
 					i += subTokens.length + 2;
 					
-					expression = new ConstructorFunctionExpression();
-					expression.classType = className;
-					var body = new BlockStatement();
+					var iden = new Identifier();
+					iden.name = className + "_";
+					//expression.classType = className;
 					// find params
+					var len = 0;
 					if (paramTokens.length >= 2) {
 						var start = 0, end = 0;
 						var subsub = [];
@@ -78,8 +84,10 @@ function ASTBuilder() {
 								if (subsub.length > 1) {
 									var param = new VariableDeclaration();
 									param.kind = subsub[0].value;
-									param.addDeclaration(findVariableDeclarator([subsub[1]]));
-									expression.addParam(param);
+									param.addDeclaration(findVariableDeclarator([subsub[1]])[0]);
+									definitionBody.addParam(param);
+									//iden.name += param.kind[0];
+									len++;
 								}
 								start = j + 1;
 							}
@@ -87,27 +95,48 @@ function ASTBuilder() {
 						subsub = paramTokens.slice(start, paramTokens.length);
 						var param = new VariableDeclaration();
 						param.kind = subsub[0].value;
-						param.addDeclaration(findVariableDeclarator([subsub[1]]));
-						expression.addParam(param);
+						param.addDeclaration(findVariableDeclarator([subsub[1]])[0]);
+						definitionBody.addParam(param);
+						//iden.name += param.kind[0];
+						len++;
 					}
-
+					iden.name += ""+len;
 					// find body
 					if (subTokens.length) {
 						getExpressions(body, subTokens);
 					}
-					expression.body = body;
+					definitionBody.body = body;
+					expression.key = iden;
+					expression.kind = 'constructor';
+					expression.value = definitionBody;
 				} else if (isClassMethodDeclaration(tokens, i)) {
+					expression = new MethodDefinition();
+					var definitionBody = new FunctionExpression();
+					var body = new BlockStatement();
+					var iden = new Identifier();
+					while (tokens[i].type === 'typeModifier') {
+						switch (tokens[i].value) {
+							case 'public':
+							case 'private':
+							case 'protected': 
+								expression.visibility = tokens[i].value;
+								break;
+							case 'static':
+								expression.isStatic = true;
+								break;
+						}
+						i++;
+					}
 					var indexes = findBlockIndexes(tokens, i, 'function');
 					var paramTokens = tokens.slice(indexes.start + 1, indexes.end);
+					iden.name = tokens[indexes.start].value + "_";
 					i += paramTokens.length + 2;
-
 					indexes = findBlockIndexes(tokens, i, 'braceLeft');
 					var subTokens = tokens.slice(indexes.start + 1, indexes.end);
 					i += subTokens.length + 2;
 					
-					expression = new FunctionExpression();
-					var body = new BlockStatement();
 					// find params
+					var len = 0;
 					if (paramTokens.length >= 2) {
 						var start = 0, end = 0;
 						var subsub = [];
@@ -119,8 +148,10 @@ function ASTBuilder() {
 								if (subsub.length > 1) {
 									var param = new VariableDeclaration();
 									param.kind = subsub[0].value;
-									param.addDeclaration(findVariableDeclarator([subsub[1]]));
-									expression.addParam(param);
+									param.addDeclaration(findVariableDeclarator([subsub[1]])[0]);
+									definitionBody.addParam(param);
+									//iden.name += param.kind[0];
+									len++;
 								}
 								start = j + 1;
 							}
@@ -128,15 +159,19 @@ function ASTBuilder() {
 						subsub = paramTokens.slice(start, paramTokens.length);
 						var param = new VariableDeclaration();
 						param.kind = subsub[0].value;
-						param.addDeclaration(findVariableDeclarator([subsub[1]]));
-						expression.addParam(param);
+						param.addDeclaration(findVariableDeclarator([subsub[1]])[0]);
+						definitionBody.addParam(param);
+						//iden.name += param.kind[0];
+						len++;
 					}
-
+					iden.name += ""+len;
 					// find body
 					if (subTokens.length) {
 						getExpressions(body, subTokens);
 					}
-					expression.body = body;
+					definitionBody.body = body;
+					expression.key = iden;
+					expression.value = definitionBody;
 				} else {
 					var subTokens = tokens.slice(i, findDeclarationRange(tokens, i)[1]); // do not include the ;
 					expression = new VariableDeclaration();
@@ -169,9 +204,10 @@ function ASTBuilder() {
 				expression = new ThreadDeclaration();
 				var id = new Identifier();
 				var body = new BlockStatement();
-
+				var funcThread = false;
 				if (tokens[i + 1].value === '{') { // nameless thread
-					id.name = "THREAD_" + i;
+					//id.name = "THREAD_" + i;
+					id.name = "THREAD_" + Date.now();
 				} else if (tokens[i + 1].type === 'label') { // find the name and opt. params
 					var tok = tokens[i + 1];
 					if (tok.type === 'label') {
@@ -191,24 +227,24 @@ function ASTBuilder() {
 					}
 					i++;
 				} else if (tokens[i + 1].type === 'function') { // thread gets body from function declaration
-					expression = new ThreadDeclaration();
-					var idx = findBlockIndexes(tokens, i + 1, 'parenLeft');
-					var paramValueTokens = tokens.slice(idx.start, idx.end);
-					//paramValueTokens = evalParamList(paramValueTokens);
-					expression.bodyFrom = 'function';
-					for (var el of paramValueTokens) {
-						//var 
-					}
+					funcThread = true;
+					//expression = new ThreadDeclaration();
+					var idx = findBlockIndexes(tokens, i + 1, 'function');
+					var callTokens = tokens.slice(idx.start, idx.end + 1);
+					//Log.d(callTokens);
+					body = getSingleExpression(callTokens);
+					i += callTokens.length;
 				}
-
-				expression.id = id;
-				var indexes = findBlockIndexes(tokens, i, 'braceLeft');
-				var subTokens = tokens.slice(indexes.start + 1, indexes.end);
-				if (subTokens.length) {
-					getExpressions(body, subTokens);
+				if (!funcThread) {
+					expression.id = id;
+					var indexes = findBlockIndexes(tokens, i, 'braceLeft');
+					var subTokens = tokens.slice(indexes.start + 1, indexes.end);
+					if (subTokens.length) {
+						getExpressions(body, subTokens);
+					}
+					i += subTokens.length + 2;
 				}
 				expression.body = body;
-				i += subTokens.length + 2;
 				block.addToBody(expression);
 
 				continue;
@@ -247,6 +283,64 @@ function ASTBuilder() {
 				i += subTokens.length + 2;
 				block.addToBody(expression);
 				continue;
+			} else if (isFunctionDefinition(tokens, i)) {
+				var expression = new FunctionExpression();
+				var body = new BlockStatement();
+				var iden = new Identifier();
+				iden.name = tokens[i + 1].value;
+
+				var indexes = findBlockIndexes(tokens, i, 'function');
+				var paramTokens = tokens.slice(indexes.start + 1, indexes.end);
+				iden.name = tokens[indexes.start].value + "_";
+				i += paramTokens.length + 2;
+				indexes = findBlockIndexes(tokens, i, 'braceLeft');
+				var subTokens = tokens.slice(indexes.start + 1, indexes.end);
+				i += subTokens.length + 2;
+				
+				var len = 0;
+				// find params
+				if (paramTokens.length >= 2) {
+					var start = 0, end = 0;
+					var subsub = [];
+					for (var j = 0; j < paramTokens.length; j++) {
+						//Log.d(TAG, subTokens[j]);
+						if (paramTokens[j].type === 'comma') {
+							end = j;
+							subsub = paramTokens.slice(start, end);
+							if (subsub.length > 1) {
+								var param = new VariableDeclaration();
+								param.kind = subsub[0].value;
+								param.addDeclaration(findVariableDeclarator([subsub[1]])[0]);
+								expression.addParam(param);
+								//iden.name += param.kind[0];
+							}
+							start = j + 1;
+							len++;
+						}
+					}
+					subsub = paramTokens.slice(start, paramTokens.length);
+					var param = new VariableDeclaration();
+					param.kind = subsub[0].value;
+					param.addDeclaration(findVariableDeclarator([subsub[1]])[0]);
+					expression.addParam(param);
+					len++;
+					//iden.name += param.kind[0];
+				}
+				iden.name += ""+len;
+				// find body
+				if (subTokens.length) {
+					getExpressions(body, subTokens);
+				}
+				expression.id = iden;
+				expression.body = body;
+				block.addToBody(expression);
+				continue;
+			} else if (isCallExpression(tokens, i)) {
+				var indexes = findBlockIndexes(tokens, i, 'function');
+				var subTokens = tokens.slice(indexes.start, indexes.end + 1);
+				//Log.d(TAG, subTokens)
+				block.addToBody(getSingleExpression(subTokens));
+				i += subTokens.length;
 			} else if (isControlFlow(tokens, i)) {
 				// match for if, while, for
 
@@ -406,6 +500,32 @@ function ASTBuilder() {
 				subsub = paramTokens.slice(start, paramTokens.length);
 				ce.addArgument(getSingleExpression(subsub));
 			}
+			return ce;
+		} else if (isCallExpression(tokens)) {
+			var ce = new CallExpression();
+			var name = tokens[0].value;
+			ce.callee = name;
+			// find params
+			var indexes = findBlockIndexes(tokens, 0, 'function');
+			var paramTokens = tokens.slice(indexes.start + 1, indexes.end);
+			var len = 0;
+			if (paramTokens.length) {
+				var start = 0, end = 0;
+				var subsub = [];
+				for (var j = 0; j < paramTokens.length; j++) {
+					if (paramTokens[j].type === 'comma') {
+						end = j;
+						subsub = paramTokens.slice(start, end);
+						ce.addArgument(getSingleExpression(subsub));
+						start = j + 1;
+						len++;
+					}
+				}
+				subsub = paramTokens.slice(start, paramTokens.length);
+				ce.addArgument(getSingleExpression(subsub));
+				len++;
+			}
+			ce.callee += "_"+len;
 			return ce;
 		} else if (isAssignmentExpression(tokens)) { // a = 1, a += 1
 			var asn = new AssignmentExpression();
@@ -568,6 +688,9 @@ function ASTBuilder() {
 	function isBuiltinMethod(tokens, i) {
 		return tokens[i].type === 'builtin';
 	}
+	function isFunctionDefinition(tokens, i) {
+		return tokens[i].type === 'functionDeclaration';
+	}
 	function isCommentBlock(tokens, i) {
 		return tokens[i].type === 'commentStart';
 	}
@@ -581,6 +704,10 @@ function ASTBuilder() {
 		return tokens.length >= 2
 			&& tokens[0].type === 'new'
 			&& tokens[1].type === 'function';
+	}
+	function isCallExpression(tokens, i) {
+		return tokens.length >= 1
+			&& tokens[i || 0].type === 'function';
 	}
 	function isBinaryExpression(tokens) {
 		return tokens.length >= 3

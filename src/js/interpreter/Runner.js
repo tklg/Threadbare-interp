@@ -17,7 +17,7 @@ class Runner {
 		ThreadManager.reset();
 		this.tm = ThreadManager.getInstance(type);
 
-		var programThread = new Thread(tree, new Environment());
+		var programThread = new Thread(tree, new Environment(), true);
 		programThread.setId("MAINTHREAD");
 		this.tm.addThread(programThread); // root thread containing program expression
 		

@@ -25,17 +25,27 @@ class ThreadDeclaration extends FunctionExpression {
 		// this is a new thread, so get the threadmanager and add a new thread
 		var tm = ThreadManager.getInstance();
 
-		var newEnv = new Environment(this._environment);
-		// add _params to newEnv
-		for (var i = 0; i < this._params.length; i++) {
-			var ee = new EnvEntry();
-			ee.setName(this._params[i].name);
-			ee.setValue(this._params[i]);
-			newEnv.addEntry(ee);
+		var thread;
+		if (this._body.type === 'BlockStatement') {
+			var newEnv = new Environment(this._environment);
+			// add _params to newEnv
+			for (var i = 0; i < this._params.length; i++) {
+				var ee = new EnvEntry();
+				ee.setName(this._params[i].name);
+				ee.setValue(this._params[i]);
+				newEnv.addEntry(ee);
+			}
+			thread = new Thread(this._body, newEnv);
+			thread.setId(this._id.name);
+		} else {
+			var body = this._environment
+						   .getEntry(this._body.callee)
+						   .getValue()
+						   .cloneBody(this._body.arguments);
+			//Log.d(body);
+			thread = new Thread(body, null, true);
+			thread.setId(this._body.callee + Date.now());
 		}
-
-		var thread = new Thread(this._body, newEnv);
-		thread.setId(this._id.name);
 		tm.addThread(thread);
 		this._stepIndex = 1;
 	}

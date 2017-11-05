@@ -47,5 +47,9 @@ class BuiltinMethod extends CallExpression {
 		}
 		this._hasRun = true;
 	}
+	isDone() {
+		return this._argsIndex === this._arguments.length
+			&& this._hasRun;
+	}
 }
 export default BuiltinMethod;
