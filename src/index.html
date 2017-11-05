@@ -10,15 +10,6 @@
 	</head>
 	<body>
 		<textarea id="e" style="height: 400px;width: 400px;">
-int z = 0;
-function test(int x, int y) {
-	print(x + y)
-}
-thread test(3, 5);
-</textarea>
-<button id="step">step</button>
-<button id="run">run</button>
-<div style="display: none">
 class Test {
 	private String foo;
 	public Test(int x) {
@@ -30,6 +21,16 @@ class Test {
 }
 int x = 0;
 Test t = new Test(x);
+</textarea>
+<button id="step">step</button>
+<button id="run">run</button>
+<div style="display: none">
+int z = 9;
+function sum(int x, int y) {
+	print(x + y)
+}
+thread sum(1 + 2, 5);
+thread sum(6, z);
 </div>
 	</body>
 	<script type="text/javascript" src="./js/threadbare.bundle.js"></script>

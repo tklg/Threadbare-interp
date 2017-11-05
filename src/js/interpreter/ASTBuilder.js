@@ -441,7 +441,9 @@ function ASTBuilder() {
 
 				if (tokens[i + 2].value === 'extends') {
 					if (tokens[i + 3].type !== 'objectType') throw "Expected Identifier, found " + tokens[i + 3].value;
-					expression.superClass = getSingleExpression([tokens[i + 3]]);
+					var iden = new Identifier();
+					iden.name = tokens[i + 3].value;
+					expression.superClass = iden;
 				}
 				var indexes = findBlockIndexes(tokens, i, 'braceLeft');
 				var subTokens = tokens.slice(indexes.start + 1, indexes.end);

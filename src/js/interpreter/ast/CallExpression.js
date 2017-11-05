@@ -39,7 +39,7 @@ class CallExpression extends AbstractElement {
 		}
 	}
 	eval() {
-		return this._body.eval();
+		return this._callee;
 	}
 	step() {
 		if (this._argsIndex < this._arguments.length) {
@@ -52,7 +52,8 @@ class CallExpression extends AbstractElement {
 			return;
 		} else if (!this._body) {
 			if (this._isConstructor) {
-
+				Log.d("NOT DONE");
+				this._argsIndex++;
 			} else {
 				// get body from function, inject params into its env
 				var fe = this._environment.getEntry(this._callee).getValue();
@@ -68,7 +69,7 @@ class CallExpression extends AbstractElement {
 	}
 	isDone() {
 		return this._argsIndex === this._arguments.length
-			&& this._body && this._body.isDone();
+			&& (this._body ? this._body.isDone() : true);
 	}
 }
 export default CallExpression;

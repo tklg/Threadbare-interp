@@ -9,34 +9,37 @@ const event = Eventify.getInstance();
 const TAG = 'Runner';
 class Runner {
 	constructor(tree, type) {
-		this.init(tree, type);
+		//this.init(tree, type);
 		this.isDone = false;
+		this._started = false;
+		this._tree = tree;
+		this._type = type;
+		this.delay = 3;
+		this.interval = null;
 		event.on('thread.error', this.stop.bind(this));
 	}
-	init(tree, type) {
-		ThreadManager.reset();
-		this.tm = ThreadManager.getInstance(type);
-
-		var programThread = new Thread(tree, new Environment(), true);
-		programThread.setId("MAINTHREAD");
-		this.tm.addThread(programThread); // root thread containing program expression
-		
-		this.delay = 1;
-		this.interval = null;
-
-		//Log.d(TAG, this.tm);
-	}
 	step() {
-		//Log.d(TAG, "step");
-		if (this.tm.isDone()) {
-			//Log.d(TAG, "ThreadManager DONE");
-			event.emit('threads.done');
-			this.stop();
-			this.isDone = true;
-			return;
+		if (!this._started) {
+			ThreadManager.reset();
+			this.tm = ThreadManager.getInstance(this._type);
+
+			var programThread = new Thread(this._tree, new Environment(), true);
+			programThread.setId("MAINTHREAD");
+			this.tm.addThread(programThread); // root thread containing program expression
+			
+			this._started = true;
+		} else {
+			//Log.d(TAG, "step");
+			if (this.tm.isDone()) {
+				//Log.d(TAG, "ThreadManager DONE");
+				event.emit('threads.done');
+				this.stop();
+				this.isDone = true;
+				return;
+			}
+			this.tm.next();
+			this.tm.step();
 		}
-		this.tm.next();
-		this.tm.step();
 	}
 	start() {
 		event.emit('runner.start');
