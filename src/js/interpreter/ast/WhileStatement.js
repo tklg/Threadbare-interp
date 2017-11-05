@@ -42,6 +42,21 @@ class WhileStatement extends AbstractElement {
 			this._test.step();
 			return;
 		} else if (!this._body.isDone() && this._test && this._test.isDone() && !!this._test.eval()) {
+
+			// evaluate before run and dont if false
+			delete this._test;
+			this._test = clone(this[hiddenTest]);
+			this._test.environment = this._environment;
+			while (!this._test.isDone()) {
+				this._test.step();
+				//Log.d('tstep');
+			}
+			if (!this._test.eval()) {
+				//Log.d('break');
+				this._break = true;
+				return;
+			}
+
 			this._body.step();
 
 			if (this._body.isDone()) {
@@ -63,7 +78,7 @@ class WhileStatement extends AbstractElement {
 		}
 	}
 	isDone() {
-		return this._test && this._test.isDone() && !this._test.eval().value && this._body.isDone();
+		return /*this._break || */this._test && this._test.isDone() && !this._test.eval().value && this._body.isDone();
 	}
 }
 export default WhileStatement;

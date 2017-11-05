@@ -1,7 +1,8 @@
 import Log from './../logger/Log.js';
 
-import TypeModifierGlobalToken from './token/TypeModifierGlobalToken.js';
+import TypeModifierToken from './token/TypeModifierToken.js';
 import PrimitiveToken from './token/PrimitiveToken.js';
+import ObjectToken from './token/ObjectToken.js';
 import VarNameToken from './token/VarNameToken.js';
 import OpToken from './token/OpToken.js';
 import ValueToken from './token/ValueToken.js';
@@ -21,15 +22,18 @@ import CommentEndToken from './token/CommentEndToken.js';
 import FunctionToken from './token/FunctionToken.js';
 import FunctionDecToken from './token/FunctionDecToken.js';
 import ControlFlowToken from './token/ControlFlowToken.js';
+import ClassToken from './token/ClassToken.js';
+import NewClassToken from './token/NewClassToken.js';
 
 const tokenRegex = {
 	typeModifier: /^\s*(global|static|final|public|private|protected|atomic)/,
-	keyword: /^\s*(new|class)/,
+	class: /^\s*(class|extends)/,
+	new: /^\s*(new)/,
 	primitiveType: /^\s*(char|short|int|float|double|long|boolean)/,
 	objectType: /^\s*([A-Z][a-zA-Z0-9_]+)/,
 	variableName: /^\s*([a-z\$_][a-z0-9\$_\.]*)/i,
 	operatorShorthand: /^\s*(\+\+|--|\+=|-=|\*=|\/=|%=|\^=|\|=|&=|>>=|<<=)/,
-	operator: /^\s*(\+|-|\*|\/|%|==|!=|>>|<<|>=|<=|>|<|=)/,
+	operator: /^\s*(\+|-|\*|\/|%|==|!=|>>|<<|>=|<=|>|<|=|!|~)/,
 	valueInteger: /^\s*(\d+)/,
 	valueChar: /^\s*'(.)'/,
 	valueString: /^\s*"(.+?)"/,
@@ -37,13 +41,13 @@ const tokenRegex = {
 	comma: /^\s*(,)/,
 	semicolon: /^\s*(;)/,
 	controlflow: /^\s*(while|for|if)/, // while ()
-	controlflowNoCond: /^\s*(do|else)/, // do {
+	controlflowNoCond: /^\s*(do|else)/, // do
 	thread: /^\s*(thread)/,
 	functionDeclaration: /^\s*(function)/,
 	//atomic: /^\s*(atomic)\s*/,
 	label: /^\s*([a-z\$_][a-z0-9\$_]*):/i,
 	builtin: /^\s*(print|error|sleep) *\(/, // func(
-	function: /^\s*([a-z\$_][a-z0-9\$_]*) *\(/, // func(
+	function: /^\s*([a-z\$_][a-z0-9\$_]*) *\(/i, // func(
 	paramLabel: /^\s*((?:[a-z\$_][a-z0-9\$_]*)\s*\([a-z\$_][a-z0-9\$_, ]*\)):/i,
 	braceLeft: /^\s*({)/,
 	braceRight: /^\s*(})/,
@@ -58,7 +62,8 @@ const matchOrder = [
 	'commentStart',
 	'commentEnd',
 	'typeModifier',
-	'keyword',
+	'class',
+	'new',
 	'label',
 	'paramLabel',
 	'controlflow',
@@ -166,8 +171,9 @@ TokenUtil.getFromNameAndMatch = function(name, match, pos) {
 		//case 'commentLine': return new CommentLineToken(name, match, pos);
 		case 'commentStart': return new CommentStartToken(name, match, pos);
 		case 'commentEnd': return new CommentEndToken(name, match, pos);
-		case 'typeModifier': return TokenUtil.getTypeModifierToken(name, match, pos);
+		case 'typeModifier': return new TypeModifierToken(name, match, pos);
 		case 'primitiveType': return new PrimitiveToken(name, match, pos);
+		case 'objectType': return new ObjectToken(name, match, pos);
 		case 'variableName': return new VarNameToken(name, match, pos);
 		case 'operator': 
 		case 'operatorShorthand':
@@ -193,20 +199,9 @@ TokenUtil.getFromNameAndMatch = function(name, match, pos) {
 		case 'builtin': return new FunctionToken(name, match, pos);
 		case 'controlflow':
 		case 'controlflowNoCond': return new ControlFlowToken(name, match, pos);
+		case 'class': return new ClassToken(name, match, pos);
+		case 'new': return new NewClassToken(name, match, pos);
 		default: throw "Invalid token type: " + name;
 	}
 }
-TokenUtil.getTypeModifierToken = function(name, match, pos) {
-	switch(match) {
-		case 'global': return new TypeModifierGlobalToken(name, match, pos);
-		default: throw "Invalid type modifier: " + match;
-	}
-}
-TokenUtil.getPrimitiveTypeToken = function(name, match, pos) {
-	switch(match) {
-		case 'int': return new PrimitiveIntToken(name, match, pos);
-		default: throw "Invalid primitive type: " + match;
-	}
-}
-
 export default Tokenizer;

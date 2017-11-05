@@ -18,6 +18,7 @@ class Runner {
 		this.tm = ThreadManager.getInstance(type);
 
 		var programThread = new Thread(tree, new Environment());
+		programThread.setId("MAINTHREAD");
 		this.tm.addThread(programThread); // root thread containing program expression
 		
 		this.delay = 1;

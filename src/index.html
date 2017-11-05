@@ -10,17 +10,16 @@
 	</head>
 	<body>
 		<textarea id="e" style="height: 400px;width: 400px;">
-int i = 0;
-thread Loop: {
-	while (i < 5) {
-		print(i);
+class Test {
+	public Test(int x) {
+		print("ok " + x);
+	}
+	public static int x(int x, int y) {
+		print(y + " " + x);
 	}
 }
-thread Increment: {
-	while (i < 5) {
-		i++;
-	}
-}
+int x = 0;
+Test t = new Test(x);
 </textarea>
 <button id="step">step</button>
 <button id="run">run</button>
@@ -54,8 +53,8 @@ thread Increment: {
 				return;
 			}
 			switch (ev) {
-				case 'stdout': return console.info(Date.now() + ": " + ev +" : %c" + val, 'color:#9977ee');
-				case 'stderr': return console.error(Date.now() + ": " + ev +" : " + val);
+				case 'stdout': return console.info(ev +" : %c" + val, 'color:#9977ee');
+				case 'stderr': return console.error(ev +" : " + val);
 				default: return console.log(ev +" : %c" + val, 'color:#888');
 			}
 		}

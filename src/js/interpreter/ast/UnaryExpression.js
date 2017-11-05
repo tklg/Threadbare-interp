@@ -55,3 +55,5 @@ function getResult(op, x) {
 		case '~': return ~x;
 	}
 }
+
+export default UnaryExpression;

@@ -7,13 +7,17 @@ const TAG = "Thread";
 function Thread(exp, env) {
 	var expression = clone(exp, false, Infinity); // create a copy of the AST for the level the thread was created at
 	var environment = env;
+	var blocked = false;
 
-	this._id = Date.now().toString();
+	this._id = 'noid';
 
 	expression.environment = environment;
 
 	this.getId = function() {
 		return this._id;
+	}
+	this.setId = function(id) {
+		this._id = id + ":" + Date.now().toString();
 	}
 	this.step = function() {
 		//Log.d(TAG, 'step');
@@ -31,7 +35,13 @@ function Thread(exp, env) {
 		return expression.isDone();
 	}
 	this.isBlocked = function() {
-		return false;
+		return blocked;
+	}
+	this.block = function() {
+		blocked = true;
+	}
+	this.unblock = function() {
+		blocked = false;
 	}
 }
 

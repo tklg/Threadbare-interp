@@ -5,6 +5,7 @@ export default class Log {
 			str = tag;
 			tag = "NOTAG";
 		}
+		//str = JSON.parse(stringify(str));
 		if (typeof str === 'object') {
 			outo(console.log, `[${tag}]:`, str);
 		} else {
@@ -16,6 +17,7 @@ export default class Log {
 			str = tag;
 			tag = "NOTAG";
 		}
+		str = JSON.parse(stringify(str));
 		if (typeof str === 'object') {
 			outo(console.warn, `[${tag}]:`, str);
 		} else {
@@ -27,6 +29,7 @@ export default class Log {
 			str = tag;
 			tag = "NOTAG";
 		}
+		//str = JSON.parse(stringify(str));
 		if (typeof str === 'object') {
 			outo(console.error, `[${tag}]:`, str);
 		} else {
@@ -39,7 +42,7 @@ export default class Log {
 			tag = "NOTAG";
 		}
 		if (typeof str === 'object') {
-			out(console.log, `[${tag}]: ${JSON.stringify(str)}`);
+			out(console.log, `[${tag}]: ${stringify(str)}`);
 		} else {
 			out(console.log, `[${tag}]: ${str}`);
 		}
@@ -53,19 +56,23 @@ export default class Log {
 			logelem.id = "LOGGERJS";
 			document.querySelector('body').append(logelem);
 		}
-		var cache = [];
-		logelem.innerHTML = `[${tag}]: ${JSON.stringify(str, function(key, value) {
-		    if (typeof value === 'object' && value !== null) {
-		        if (cache.indexOf(value) !== -1) {
-		            // Circular reference found, discard key
-		            return '<span style="color:red">[CircularRef]</span>';
-		        }
-		        // Store value in our collection
-		        cache.push(value);
-		    }
-		    return value;
-		}, 2)}\n` + logelem.innerHTML;
+		logelem.innerHTML = `[${tag}]: ${stringify(str, true)}\n` + logelem.innerHTML;
 	}
+}
+
+function stringify(str, html) {
+	var cache = [];
+	return JSON.stringify(str, function(key, value) {
+	    if (typeof value === 'object' && value !== null) {
+	        if (cache.indexOf(value) !== -1) {
+	            // Circular reference found, discard key
+	            return html ? '<span style="color:red">[CircularRef]</span>' : 'circular';
+	        }
+	        // Store value in our collection
+	        cache.push(value);
+	    }
+	    return value;
+	}, 2);
 }
 
 const out = (fn, str) => fn(str);

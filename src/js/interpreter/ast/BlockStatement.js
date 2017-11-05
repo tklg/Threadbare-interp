@@ -20,8 +20,12 @@ class BlockStatement extends AbstractElement {
 			i.environment = env;
 		}
 	}
+	get hasRun() {
+		return this._hasRun || false;
+	}
 	step() {
 		var expr = this._body[this._stepIndex];
+		this._hasRun = true;
 		if (!expr.isDone()) {
 			expr.step();
 		} else {

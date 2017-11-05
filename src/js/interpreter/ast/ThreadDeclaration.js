@@ -35,6 +35,7 @@ class ThreadDeclaration extends FunctionExpression {
 		}
 
 		var thread = new Thread(this._body, newEnv);
+		thread.setId(this._id.name);
 		tm.addThread(thread);
 		this._stepIndex = 1;
 	}

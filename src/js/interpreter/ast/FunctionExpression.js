@@ -7,6 +7,7 @@ class FunctionExpression extends AbstractElement {
 		this._type = "FunctionExpression";
 		// instance of Identifier
 		this._id;
+		// array of VariableDeclaration
 		this._params = [];
 		// instance of BlockStatement
 		this._body;

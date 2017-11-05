@@ -1,4 +1,9 @@
 import AbstractElement from './AbstractElement.js';
+import ClassManager from './class/ClassManager.js';
+import Class from './class/Class.js';
+import clone from 'clone';
+
+const man = ClassManager.getInstance();
 
 // class id
 class ClassDeclaration extends AbstractElement {
@@ -29,6 +34,17 @@ class ClassDeclaration extends AbstractElement {
 	}
 	set superClass(superClass) {
 		this._superClass = superClass;
+	}
+	getMethod(name) {
+		// search Class for method called [name]
+	}
+	step() {
+		// clone the body, evaluate it, add fields to Class object, 
+		// add Class to classmanager
+		this._hasRun = true;
+	}
+	isDone() {
+		return this._hasRun || false;
 	}
 }
 export default ClassDeclaration;

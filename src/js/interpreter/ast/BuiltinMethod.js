@@ -1,4 +1,4 @@
-import AbstractElement from './AbstractElement.js';
+import CallExpression from './CallExpression.js';
 //import EventEmitter from './../../EventEmitter.js';
 import Log from './../../logger/Log.js';
 import Eventify from './../../Eventify.js';
@@ -6,33 +6,10 @@ import Eventify from './../../Eventify.js';
 const event = Eventify.getInstance();
 const TAG = "BuiltinMethod";
 // print(x)
-class BuiltinMethod extends AbstractElement {
+class BuiltinMethod extends CallExpression {
 	constructor() {
 		super();
 		this._type = 'BuiltinMethod';
-		// evaluates to Identifier
-		this._callee;
-		this._arguments = [];
-		this._argsIndex = 0;
-		this._hasRun = false;
-	}
-	get callee() {
-		return this._callee;
-	}
-	set callee(ce) {
-		this._callee = ce;
-	}
-	get arguments() {
-		return this._arguments;
-	}
-	addArgument(arg) {
-		this._arguments.push(arg);
-	}
-	set environment(env) {
-		super.environment = env;
-		for (var i of this._arguments) {
-			i.environment = env;
-		}
 	}
 	step() {
 		if (this._argsIndex < this._arguments.length || (this._arguments[this._argsIndex] !== undefined && !this._arguments[this._argsIndex].isDone())) {
@@ -69,9 +46,6 @@ class BuiltinMethod extends AbstractElement {
 				break;
 		}
 		this._hasRun = true;
-	}
-	isDone() {
-		return this._argsIndex === this._arguments.length && this._hasRun;
 	}
 }
 export default BuiltinMethod;

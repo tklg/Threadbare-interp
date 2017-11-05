@@ -6,14 +6,20 @@ import VariableDeclarator from './ast/VariableDeclarator.js';
 import Identifier from './ast/Identifier.js';
 import Literal from './ast/Literal.js';
 import BinaryExpression from './ast/BinaryExpression.js';
+import UnaryExpression from './ast/UnaryExpression.js';
 import UpdateExpression from './ast/UpdateExpression.js';
 import AssignmentExpression from './ast/AssignmentExpression.js';
+import CallExpression from './ast/CallExpression.js';
 import BlockStatement from './ast/BlockStatement.js';
 import ExpressionStatement from './ast/ExpressionStatement.js';
 import BuiltinMethod from './ast/BuiltinMethod.js';
+import FunctionExpression from './ast/FunctionExpression.js';
+import ConstructorFunctionExpression from './ast/ConstructorFunctionExpression.js';
 import IFStatement from './ast/IFStatement.js';
 import ForStatement from './ast/ForStatement.js';
 import WhileStatement from './ast/WhileStatement.js';
+import ClassDeclaration from './ast/ClassDeclaration.js';
+import ClassBody from './ast/ClassBody.js';
 
 function ASTBuilder() {
 	const TAG = "ASTBuilder";
@@ -47,26 +53,112 @@ function ASTBuilder() {
 			// global int x = ...
 			// ends in a SemToken
 			else if (isVariableDeclaration(tokens, i)) {
-				var subTokens = tokens.slice(i, findDeclarationRange(tokens, i)[1]); // do not include the ;
-				expression = new VariableDeclaration();
-				i += subTokens.length;
+				if (isClassConstructorDeclaration(tokens, i)) {
+					var className = tokens[i + 1].value;
+					var indexes = findBlockIndexes(tokens, i, 'function');
+					var paramTokens = tokens.slice(indexes.start + 1, indexes.end);
+					i += paramTokens.length + 2;
+
+					indexes = findBlockIndexes(tokens, i, 'braceLeft');
+					var subTokens = tokens.slice(indexes.start + 1, indexes.end);
+					i += subTokens.length + 2;
+					
+					expression = new ConstructorFunctionExpression();
+					expression.classType = className;
+					var body = new BlockStatement();
+					// find params
+					if (paramTokens.length >= 2) {
+						var start = 0, end = 0;
+						var subsub = [];
+						for (var j = 0; j < paramTokens.length; j++) {
+							//Log.d(TAG, subTokens[j]);
+							if (paramTokens[j].type === 'comma') {
+								end = j;
+								subsub = paramTokens.slice(start, end);
+								if (subsub.length > 1) {
+									var param = new VariableDeclaration();
+									param.kind = subsub[0].value;
+									param.addDeclaration(findVariableDeclarator([subsub[1]]));
+									expression.addParam(param);
+								}
+								start = j + 1;
+							}
+						}
+						subsub = paramTokens.slice(start, paramTokens.length);
+						var param = new VariableDeclaration();
+						param.kind = subsub[0].value;
+						param.addDeclaration(findVariableDeclarator([subsub[1]]));
+						expression.addParam(param);
+					}
+
+					// find body
+					if (subTokens.length) {
+						getExpressions(body, subTokens);
+					}
+					expression.body = body;
+				} else if (isClassMethodDeclaration(tokens, i)) {
+					var indexes = findBlockIndexes(tokens, i, 'function');
+					var paramTokens = tokens.slice(indexes.start + 1, indexes.end);
+					i += paramTokens.length + 2;
+
+					indexes = findBlockIndexes(tokens, i, 'braceLeft');
+					var subTokens = tokens.slice(indexes.start + 1, indexes.end);
+					i += subTokens.length + 2;
+					
+					expression = new FunctionExpression();
+					var body = new BlockStatement();
+					// find params
+					if (paramTokens.length >= 2) {
+						var start = 0, end = 0;
+						var subsub = [];
+						for (var j = 0; j < paramTokens.length; j++) {
+							//Log.d(TAG, subTokens[j]);
+							if (paramTokens[j].type === 'comma') {
+								end = j;
+								subsub = paramTokens.slice(start, end);
+								if (subsub.length > 1) {
+									var param = new VariableDeclaration();
+									param.kind = subsub[0].value;
+									param.addDeclaration(findVariableDeclarator([subsub[1]]));
+									expression.addParam(param);
+								}
+								start = j + 1;
+							}
+						}
+						subsub = paramTokens.slice(start, paramTokens.length);
+						var param = new VariableDeclaration();
+						param.kind = subsub[0].value;
+						param.addDeclaration(findVariableDeclarator([subsub[1]]));
+						expression.addParam(param);
+					}
+
+					// find body
+					if (subTokens.length) {
+						getExpressions(body, subTokens);
+					}
+					expression.body = body;
+				} else {
+					var subTokens = tokens.slice(i, findDeclarationRange(tokens, i)[1]); // do not include the ;
+					expression = new VariableDeclaration();
+					i += subTokens.length;
 
 
-				if (subTokens[0].type === 'typeModifier') {
-					expression.addModifier(subTokens[0].value);
-					subTokens.shift();
-				}
-				if (subTokens[0].type === 'primitiveType' || subTokens[0].type === 'objectType') {
-					expression.kind = subTokens[0].value;
-					subTokens.shift();
-				}
+					if (subTokens[0].type === 'typeModifier') {
+						expression.addModifier(subTokens[0].value);
+						subTokens.shift();
+					}
+					if (subTokens[0].type === 'primitiveType' || subTokens[0].type === 'objectType') {
+						expression.kind = subTokens[0].value;
+						subTokens.shift();
+					}
 
-				if (subTokens.length) {
-					//Log.d(JSON.parse(JSON.stringify(subTokens)));
-					var decs = findVariableDeclarator(subTokens);
-					//Log.d(decs);
-					for (var d of decs) {
-						expression.addDeclaration(d);
+					if (subTokens.length) {
+						//Log.d(JSON.parse(JSON.stringify(subTokens)));
+						var decs = findVariableDeclarator(subTokens);
+						//Log.d(decs);
+						for (var d of decs) {
+							expression.addDeclaration(d);
+						}
 					}
 				}
 
@@ -181,9 +273,37 @@ function ASTBuilder() {
 					testTokens = tokens.slice(indexes.start + 1, indexes.end);
 					//Log.d(TAG, testTokens);
 					if (!(expression instanceof ForStatement)) {
+						//Log.d(TAG, testTokens);
 						expression.test = getSingleExpression(testTokens);
 					} else {
 						//separate into 3 sections for(;;){}
+						//Log.d(TAG + "1", testTokens);
+						var declaratorTokens = testTokens.slice(0, findDeclarationRange(testTokens, 0)[1]);
+						var subTokens = testTokens.slice(declaratorTokens.length + 1, findDeclarationRange(testTokens, declaratorTokens.length + 1)[1]);
+						var updateTokens = testTokens.slice(declaratorTokens.length + subTokens.length + 2);
+						
+						// first section
+						if (declaratorTokens[0].type === 'primitiveType' || declaratorTokens[0].type === 'objectType') {
+							var declarator = new VariableDeclaration();
+							declarator.kind = declaratorTokens[0].value;
+							declaratorTokens.shift();
+							if (declaratorTokens.length) {
+								var decs = findVariableDeclarator(declaratorTokens);
+								for (var d of decs) {
+									declarator.addDeclaration(d);
+								}
+							}
+							expression.init = declarator;
+						} else {
+							var stmt = new ExpressionStatement();
+							stmt.expression = getSingleExpression(declaratorTokens);
+							expression.init = stmt;
+						}
+
+						// second section
+						expression.test = getSingleExpression(subTokens);
+						// third
+						expression.update = getSingleExpression(updateTokens);
 
 					}
 				} else {
@@ -217,6 +337,26 @@ function ASTBuilder() {
 
 				block.addToBody(expression);
 				continue;
+			} else if (isClassDeclaration(tokens, i)) {
+				var expression = new ClassDeclaration();
+				var id = new Identifier();
+				var body = new ClassBody();
+
+				id.name = tokens[i + 1].value;
+				expression.id = id;
+
+				if (tokens[i + 2].value === 'extends') {
+					if (tokens[i + 3].type !== 'objectType') throw "Expected Identifier, found " + tokens[i + 3].value;
+					expression.superClass = getSingleExpression([tokens[i + 3]]);
+				}
+				var indexes = findBlockIndexes(tokens, i, 'braceLeft');
+				var subTokens = tokens.slice(indexes.start + 1, indexes.end);
+				if (subTokens.length) {
+					getExpressions(body, subTokens);
+				}
+				expression.body = body;
+				i += subTokens.length + 2;
+				block.addToBody(expression);
 			}
 			i++;
 		}
@@ -244,6 +384,29 @@ function ASTBuilder() {
 			var id = new Identifier();
 			id.name = tokens[0].value;
 			return id;
+		} else if (isNewExpression(tokens)) { // new x()
+			var ce = new CallExpression();
+			var name = tokens[1].value;
+			ce.callee = name;
+			ce.isConstructor = true;
+			// find params
+			var indexes = findBlockIndexes(tokens, 0, 'function');
+			var paramTokens = tokens.slice(indexes.start + 1, indexes.end);
+			if (paramTokens.length) {
+				var start = 0, end = 0;
+				var subsub = [];
+				for (var j = 0; j < paramTokens.length; j++) {
+					if (paramTokens[j].type === 'comma') {
+						end = j;
+						subsub = paramTokens.slice(start, end);
+						ce.addArgument(getSingleExpression(subsub));
+						start = j + 1;
+					}
+				}
+				subsub = paramTokens.slice(start, paramTokens.length);
+				ce.addArgument(getSingleExpression(subsub));
+			}
+			return ce;
 		} else if (isAssignmentExpression(tokens)) { // a = 1, a += 1
 			var asn = new AssignmentExpression();
 			asn.operator = tokens[1].value;
@@ -252,6 +415,8 @@ function ASTBuilder() {
 			//Log.d(subTokens);
 			asn.right = getSingleExpression(subTokens);
 			return asn;
+		} else if (isUnaryExpression(tokens)) {
+			return getUnaryExpression(tokens);
 		} else if (isBinaryExpression(tokens)) { // a + 1, must be after assignmentExpression
 			var bex = getBinaryExpression(tokens);
 			return bex;
@@ -318,6 +483,12 @@ function ASTBuilder() {
 		}
 		return bex;
 	}
+	function getUnaryExpression(tokens) {
+		var uex = new UnaryExpression();
+		uex.operator = tokens[0].value;
+		uex.argument = getSingleExpression(tokens.slice(1));
+		return uex;
+	}
 	function getControlFlowAlternate(tokens) {
 		var i = 1;
 		var tokLen = 0;
@@ -373,6 +544,7 @@ function ASTBuilder() {
 		var x = tokens.length;
 		var decs = [];
 		while (i < x && tokens.length > 0) {
+			//Log.d(tokens);
 			if (isVariableDeclarator(tokens)) {
 				var decl = new VariableDeclarator();
 				var leftIdent = new Identifier();
@@ -405,11 +577,23 @@ function ASTBuilder() {
 	function isLiteral(tokens) {
 		return tokens.length === 1 && ['valueInteger', 'valueChar', 'valueString', 'valueBool'].includes(tokens[0].type);
 	}
+	function isNewExpression(tokens) {
+		return tokens.length >= 2
+			&& tokens[0].type === 'new'
+			&& tokens[1].type === 'function';
+	}
 	function isBinaryExpression(tokens) {
 		return tokens.length >= 3
 			&& tokens.reduce((a, t) => {
 				return a || isOperator(t);
 			}, false);
+	}
+	function isUnaryExpression(tokens) {
+		return tokens.length >= 2
+			&& isUnary(tokens[0]);
+			/*&& tokens.reduce((a, t) => {
+				return a || isUnary(t);
+			}, false);*/
 	}
 	function isOperator(token) {
 		return ['+','-','*','/','%','^','&','|','&&','||','==','!=','>','<','>=','<=','>>','<<'].includes(token.value);
@@ -432,6 +616,9 @@ function ASTBuilder() {
 		if (tokens[0].type === 'operatorShorthand') tok = tokens[0];
 		else tok = tokens[1];
 		return ['++','--'].includes(tok.value);
+	}
+	function isClassDeclaration(tokens, i) {
+		return tokens[i].type === 'class' && tokens[i + 1].type === 'objectType';
 	}
 	function findDeclarationRange(tokens, _i) {
 		var j = _i;
@@ -472,10 +659,21 @@ function ASTBuilder() {
 		}
 		return false;
 	}
+	function isClassMethodDeclaration(tokens, i) {
+		// return false;
+		// public static int x( )
+		var check = tokens.slice(i, i + 4);
+		return check.reduce((a, t) => a || t.type === 'function', false);
+	}
+	function isClassConstructorDeclaration(tokens, i) {
+		return tokens[i].value === 'public' && tokens[i + 1].type === 'function';
+	}
 	function isVariableDeclarator(tokens) {
 		if (tokens[0].type === 'variableName'/* && tokens[1] !== undefined && tokens[1].value === '='*/) { // x = ...
 			return true;
 		}
+		//Log.d(tokens[0]);
+		if (tokens[0].type === 'new' && tokens[1].type === 'objectType') return true;
 		return false;
 	}
 	function isThreadDeclaration(tokens, i) {
