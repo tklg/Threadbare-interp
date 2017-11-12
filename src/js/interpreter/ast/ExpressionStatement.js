@@ -21,8 +21,12 @@ class ExpressionStatement extends AbstractElement {
 		this._expression.environment = env;
 	}
 	step() {
-		this._expression.step();
-		if (this._expression.isDone()) this._hasRun = true;
+		if (!this._expression.isDone()) {
+			this._expression.step();
+			return;
+		} else {
+			this._hasRun = true;
+		}
 	}
 	isDone() {
 		return this._expression.isDone() && this._hasRun;

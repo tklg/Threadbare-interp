@@ -38,7 +38,12 @@ class Runner {
 				return;
 			}
 			this.tm.next();
-			this.tm.step();
+			try {
+				this.tm.step();
+			} catch (e) {
+				Log.e(TAG, e);
+				this.stop();
+			}
 		}
 	}
 	start() {

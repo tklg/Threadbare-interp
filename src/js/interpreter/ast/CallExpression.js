@@ -39,7 +39,7 @@ class CallExpression extends AbstractElement {
 		}
 	}
 	eval() {
-		return this._callee;
+		return this._returnValue || this._callee;
 	}
 	step() {
 		if (this._argsIndex < this._arguments.length) {
@@ -52,14 +52,31 @@ class CallExpression extends AbstractElement {
 			return;
 		} else if (!this._body) {
 			if (this._isConstructor) {
-				Log.d("NOT DONE");
-				this._argsIndex++;
+				var name = this._callee.split('_')[0];
+				var classDef = this._environment.getEntry(name)
+				if (!classDef) throw `Class ${name} is not defined.`;
+				classDef = classDef.getValue();
+				this._returnValue = classDef.clone();
+				//Log.d(this._returnValue);
+				// find the constructor method
+				var constr = this._returnValue.getConstructor(this._callee)
+				if (!constr) {
+					this._hasRun = true;
+					return;
+				}
+				constr = constr.getValue();
+				//Log.d('constr', this._arguments);
+				// constuctor is ony run once, so dont bother cloning it
+				var args = this._arguments.map(a => a.eval());
+				this._body = constr.cloneBody(args, true);
 			} else {
 				// get body from function, inject params into its env
 				var fe = this._environment.getEntry(this._callee).getValue();
-				this._body = fe.cloneBody(this._arguments);
+				var args = this._arguments.map(a => a.eval());
+				this._body = fe.cloneBody(args);
 				//Log.d("cloned body");
 			}
+			this._hasRun = true;
 			return;
 		} else if (!this._body.isDone()) {
 			//Log.d(this._body);
@@ -69,6 +86,7 @@ class CallExpression extends AbstractElement {
 	}
 	isDone() {
 		return this._argsIndex === this._arguments.length
+			&& this._hasRun
 			&& (this._body ? this._body.isDone() : true);
 	}
 }

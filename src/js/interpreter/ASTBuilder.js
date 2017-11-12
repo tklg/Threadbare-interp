@@ -9,6 +9,7 @@ import BinaryExpression from './ast/BinaryExpression.js';
 import UnaryExpression from './ast/UnaryExpression.js';
 import UpdateExpression from './ast/UpdateExpression.js';
 import AssignmentExpression from './ast/AssignmentExpression.js';
+import MemberExpression from './ast/MemberExpression.js';
 import CallExpression from './ast/CallExpression.js';
 import BlockStatement from './ast/BlockStatement.js';
 import ExpressionStatement from './ast/ExpressionStatement.js';
@@ -56,7 +57,7 @@ function ASTBuilder() {
 			else if (isVariableDeclaration(tokens, i)) {
 				if (isClassConstructorDeclaration(tokens, i)) {
 					expression = new MethodDefinition();
-					var definitionBody = new ConstructorFunctionExpression();
+					var definitionBody = new /*Constructor*/FunctionExpression();
 					var body = new BlockStatement();
 
 					var className = tokens[i + 1].value;
@@ -488,6 +489,7 @@ function ASTBuilder() {
 			// find params
 			var indexes = findBlockIndexes(tokens, 0, 'function');
 			var paramTokens = tokens.slice(indexes.start + 1, indexes.end);
+			var len = 0;
 			if (paramTokens.length) {
 				var start = 0, end = 0;
 				var subsub = [];
@@ -497,11 +499,14 @@ function ASTBuilder() {
 						subsub = paramTokens.slice(start, end);
 						ce.addArgument(getSingleExpression(subsub));
 						start = j + 1;
+						len++;
 					}
 				}
 				subsub = paramTokens.slice(start, paramTokens.length);
 				ce.addArgument(getSingleExpression(subsub));
+				len++;
 			}
+			ce.callee += "_"+len;
 			return ce;
 		} else if (isCallExpression(tokens)) {
 			var ce = new CallExpression();
@@ -537,11 +542,6 @@ function ASTBuilder() {
 			//Log.d(subTokens);
 			asn.right = getSingleExpression(subTokens);
 			return asn;
-		} else if (isUnaryExpression(tokens)) {
-			return getUnaryExpression(tokens);
-		} else if (isBinaryExpression(tokens)) { // a + 1, must be after assignmentExpression
-			var bex = getBinaryExpression(tokens);
-			return bex;
 		} else if (isUpdateExpression(tokens)) { // a++
 			var upd = new UpdateExpression();
 			var tok, op;
@@ -554,7 +554,27 @@ function ASTBuilder() {
 				upd.operator = tokens[1].value;
 			}
 			return upd;
-		}
+		} else if (isMemberExpression(tokens)) {
+			//Log.d(tokens);
+			var dot = 1; // last dot
+			for (var i = 0; i < tokens.length; i++) {
+				if (tokens[i].type === 'dot') dot = i;
+			}
+			var left = tokens.slice(0, dot);
+			var right = tokens.slice(dot + 1);
+			//Log.d("L", left);
+			//Log.d("R", right);
+			var me = new MemberExpression();
+			me.object = getSingleExpression(left);
+			me.property = getSingleExpression(right);
+
+			return me;
+		} else if (isUnaryExpression(tokens)) {
+			return getUnaryExpression(tokens);
+		} else if (isBinaryExpression(tokens)) { // a + 1, must be after assignmentExpression
+			var bex = getBinaryExpression(tokens);
+			return bex;
+		} 
 	}
 	function getBinaryExpression(tokens) {
 		// 1 + 2
@@ -702,6 +722,10 @@ function ASTBuilder() {
 	function isLiteral(tokens) {
 		return tokens.length === 1 && ['valueInteger', 'valueChar', 'valueString', 'valueBool'].includes(tokens[0].type);
 	}
+	function isMemberExpression(tokens, i) {
+		//return tokens.length === 1 && tokens[i || 0].value.indexOf('.') > -1;
+		return tokens.reduce((a, t) => a || t.type === 'dot', false);
+	}
 	function isNewExpression(tokens) {
 		return tokens.length >= 2
 			&& tokens[0].type === 'new'
@@ -734,7 +758,7 @@ function ASTBuilder() {
 		return tokens.length === 1 && ['variableName'].includes(tokens[0].type);
 	}
 	function isExpressionStatement(tokens, i) {
-		return ['variableName'].includes(tokens[i].type) || ['++','--'].includes(tokens[i].value);
+		return ['variableName','function'].includes(tokens[i].type) || ['++','--'].includes(tokens[i].value);
 	}
 	function isAssignmentExpression(tokens) {
 		return tokens[1] !== undefined && ['=','+=','-=','*=','/=','&=','|=','^=','>>=','<<='].includes(tokens[1].value);

@@ -8,6 +8,7 @@ import OpToken from './token/OpToken.js';
 import ValueToken from './token/ValueToken.js';
 import ComToken from './token/ComToken.js';
 import SemToken from './token/SemToken.js';
+import DotToken from './token/DotToken.js';
 import ThreadToken from './token/ThreadToken.js';
 import LabelToken from './token/LabelToken.js';
 import ParamLabelToken from './token/ParamLabelToken.js';
@@ -31,7 +32,8 @@ const tokenRegex = {
 	new: /^\s*(new)/,
 	primitiveType: /^\s*(char|short|int|float|double|long|boolean)/,
 	objectType: /^\s*([A-Z][a-zA-Z0-9_]+)/,
-	variableName: /^\s*([a-z\$_][a-z0-9\$_\.]*)/i,
+	variableName: /^\s*([a-z\$_][a-z0-9\$_]*)/i,
+	dot: /(\.)/,
 	operatorShorthand: /^\s*(\+\+|--|\+=|-=|\*=|\/=|%=|\^=|\|=|&=|>>=|<<=)/,
 	operator: /^\s*(\+|-|\*|\/|%|==|!=|>>|<<|>=|<=|>|<|=|!|~)/,
 	valueInteger: /^\s*(\d+)/,
@@ -90,6 +92,7 @@ const matchOrder = [
 	'valueBool',
 	'valueInteger',
 	'variableName',
+	'dot',
 ];
 
 function Tokenizer(_str) {
@@ -185,6 +188,7 @@ TokenUtil.getFromNameAndMatch = function(name, match, pos) {
 		case 'valueString': return new ValueToken(name, match, pos);
 		case 'comma': return new ComToken(name, match, pos);
 		case 'semicolon': return new SemToken(name, match, pos);
+		case 'dot': return new DotToken(name, match, pos);
 		case 'thread': return new ThreadToken(name, match, pos);
 		case 'functionDeclaration': return new FunctionDecToken(name, match, pos);
 		case 'function': return new FunctionToken(name, match, pos);

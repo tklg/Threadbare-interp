@@ -33,10 +33,10 @@ class FunctionExpression extends AbstractElement {
 		return this._body;
 	}*/
 	// params is an array of evaluated literals
-	cloneBody(params) {
+	cloneBody(params, fakeClone) {
 		// function body is copied and run
 		// inject params into env
-		var body = clone(this._body);
+		var body = !fakeClone ? clone(this._body) : this._body;
 		var declarations = this._params;
 		//Log.d("DECL", declarations);
 		if (!params || declarations.length !== params.length) throw `${this._id.name}/${declarations.length}: incorrect arity, got ${params ? params.length : 0}.`;

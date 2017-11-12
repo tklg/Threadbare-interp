@@ -6,6 +6,10 @@ class Environment {
 	addEntry(en) {
 		this.env[en.getName()] = en;
 	}
+	addEntryToGlobal(en) {
+		if (this.parentEnv === null) this.addEntry(en);
+		else this.parentEnv.addEntryToGlobal(en);
+	}
 	updateEntry(name, val) {
 		this.getEntry(name).setValue(val);
 	}

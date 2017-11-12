@@ -11,16 +11,17 @@
 	<body>
 		<textarea id="e" style="height: 400px;width: 400px;">
 class Test {
-	private String foo;
-	public Test(int x) {
-		print("ok " + x);
+	private int pn;
+	public Test(int n) {
+		print("constructor");
+		pn = n;
 	}
-	public static int x(int x, int y) {
-		print(y + " " + x);
+	public void test() {
+		print("ok: " + pn);
 	}
 }
-int x = 0;
-Test t = new Test(x);
+Test t = new Test(9);
+t.test();
 </textarea>
 <button id="step">step</button>
 <button id="run">run</button>
@@ -31,6 +32,14 @@ function sum(int x, int y) {
 }
 thread sum(1 + 2, 5);
 thread sum(6, z);
+
+private String foo;
+	public Test(int x) {
+		print("ok " + x);
+	}
+	public static int x(int x, int y) {
+		print(y + " " + x);
+	}
 </div>
 	</body>
 	<script type="text/javascript" src="./js/threadbare.bundle.js"></script>
