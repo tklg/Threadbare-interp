@@ -1,5 +1,4 @@
 import AbstractElement from './AbstractElement.js';
-import ClassManager from './class/ClassManager.js';
 import Class from './class/Class.js';
 import clone from 'clone';
 import Log from './../../logger/Log.js';

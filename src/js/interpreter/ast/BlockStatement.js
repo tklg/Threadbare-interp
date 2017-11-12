@@ -7,6 +7,7 @@ class BlockStatement extends AbstractElement {
 		this._type = "BlockStatement";
 		this._body = [];
 		this._stepIndex = 0;
+		this._atomic = false;
 	}
 	addToBody(expr) {
 		this._body.push(expr);
@@ -23,11 +24,23 @@ class BlockStatement extends AbstractElement {
 	get hasRun() {
 		return this._hasRun || false;
 	}
+	set atomic(a) {
+		this._atomic = a;
+	}
+	get atomic() {
+		return this._atomic;
+	}
 	step() {
 		var expr = this._body[this._stepIndex];
 		this._hasRun = true;
 		if (!expr.isDone()) {
-			expr.step();
+			if (this._atomic) {
+				while (this._stepIndex < this._body.length) {
+					expr = this._body[this._stepIndex];
+					while (!expr.isDone()) expr.step();
+					this._stepIndex++;
+				}
+			} else expr.step();
 		} else {
 			this._stepIndex++;
 		}

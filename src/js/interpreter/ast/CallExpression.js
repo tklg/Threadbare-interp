@@ -1,5 +1,4 @@
 import AbstractElement from './AbstractElement.js';
-import ClassManager from './class/ClassManager.js';
 import Log from './../../logger/Log.js';
 // x();
 const TAG = "CallExpression";

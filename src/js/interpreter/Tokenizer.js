@@ -9,6 +9,7 @@ import ValueToken from './token/ValueToken.js';
 import ComToken from './token/ComToken.js';
 import SemToken from './token/SemToken.js';
 import DotToken from './token/DotToken.js';
+import AtomicToken from './token/AtomicToken.js';
 import ThreadToken from './token/ThreadToken.js';
 import LabelToken from './token/LabelToken.js';
 import ParamLabelToken from './token/ParamLabelToken.js';
@@ -46,9 +47,9 @@ const tokenRegex = {
 	controlflowNoCond: /^\s*(do|else)/, // do
 	thread: /^\s*(thread)/,
 	functionDeclaration: /^\s*(function)/,
-	//atomic: /^\s*(atomic)\s*/,
+	atomic: /^\s*(atomic)/,
 	label: /^\s*([a-z\$_][a-z0-9\$_]*):/i,
-	builtin: /^\s*(print|error|sleep) *\(/, // func(
+	builtin: /^\s*(print|error|sleep|__thread_sleep|__thread_wake|__thread_count|__thread_id|__thread_store|__thread_unstore) *\(/, // func(
 	function: /^\s*([a-z\$_][a-z0-9\$_]*) *\(/i, // func(
 	paramLabel: /^\s*((?:[a-z\$_][a-z0-9\$_]*)\s*\([a-z\$_][a-z0-9\$_, ]*\)):/i,
 	braceLeft: /^\s*({)/,
@@ -63,6 +64,7 @@ const tokenRegex = {
 const matchOrder = [
 	'commentStart',
 	'commentEnd',
+	'atomic',
 	'typeModifier',
 	'class',
 	'new',
@@ -74,7 +76,6 @@ const matchOrder = [
 	'function',
 	'thread',
 	'functionDeclaration',
-	//'atomic',
 	'operatorShorthand',
 	'primitiveType',
 	'objectType',
@@ -186,6 +187,7 @@ TokenUtil.getFromNameAndMatch = function(name, match, pos) {
 		case 'valueBool': return new ValueToken(name, match === 'true', pos);
 		case 'valueChar':
 		case 'valueString': return new ValueToken(name, match, pos);
+		case 'atomic': return new AtomicToken(name, match, pos);
 		case 'comma': return new ComToken(name, match, pos);
 		case 'semicolon': return new SemToken(name, match, pos);
 		case 'dot': return new DotToken(name, match, pos);

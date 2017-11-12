@@ -40,10 +40,26 @@ class ThreadManager {
 	}
 	pauseCurrent() {
 		this.current.block();
+		event.emit('threads.pause', this.current.getId());
 		this.next();
 	}
-	resume(thread) {
-		thread.unblock();
+	resume(id) {
+		if (id) { // resume a specific thread
+			for (var t of this.threads) {
+				if (t.getId() === id && t.isBlocked()) {
+					t.unblock();
+					event.emit('threads.resume', id);
+					return;
+				}
+			}
+			event.emit('threads.resume.warn', 'Thread ' + id + ' does not exist or is not paused.');
+		} else { // resume a random paused thread
+			var thr = this.threads.filter(t => t.isBlocked());
+			if (!thr.length) event.emit('threads.resume.warn', 'There are no blocked threads to resume.');
+			var t = thr[Math.floor(Math.random() * thr.length)];
+			t.unblock();
+			event.emit('threads.resume', t.getId());
+		}
 	}
 	next() {
 		var oid = this.current.getId();
@@ -60,6 +76,7 @@ class ThreadManager {
 					this.current = tmp;
 				}
 			}
+			if (this.current.isBlocked()) this.next();
 		} else {
 			var i = this.threads.length;
 			do {
@@ -71,13 +88,16 @@ class ThreadManager {
 					this.threads.push(this.current);
 					this.current = this.threads[Math.floor(Math.random() * this.threads.length)];
 					this.threads = this.threads.filter(t => t !== this.current);
+					//this.current = this.threads.splice(Math.floor(Math.random() * this.threads.length), 1);
 				}
 				i--;
 			} while (this.current.isBlocked() && i > 0);
 		}
+		//Log.d("CURRENT", this.current);
 		if (oid !== this.current.getId()) event.emit("thread.switch", this.current.getId());
 	}
-	current() {
+	getCurrent() {
+		Log.d("GETCURRENT", this.current);
 		return this.current;
 	}
 	step() {

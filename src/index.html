@@ -9,19 +9,41 @@
 		<title>ThreadBare</title>
 	</head>
 	<body>
-		<textarea id="e" style="height: 400px;width: 400px;">
-class Test {
-	private int pn;
-	public Test(int n) {
-		print("constructor");
-		pn = n;
+		<textarea id="e" style="height: 700px;width: 500px;">
+class Semaphore {
+	private int permissions;
+	public Semaphore(int perms) {
+		permissions = perms;
 	}
-	public void test() {
-		print("ok: " + pn);
+	public atomic void acquire() {
+		if (permissions > 0) {
+			permissions--;
+		} else {
+			__thread_store(__thread_id());
+			__thread_sleep();
+		}
+	}
+	public atomic void release() {
+		if (__thread_count() == 0) {
+			permissions++;
+		} else {
+			int waking = __thread_unstore();
+			__thread_wake(waking);
+		}
 	}
 }
-Test t = new Test(9);
-t.test();
+public Semaphore mutex = new Semaphore(1);
+public int counter = 0;
+function turnstile(int id) {
+	for (int i = 0; i < 50; i++) {
+		mutex.acquire();
+		counter++;
+		mutex.release();
+	}
+	print(id + ": currently " + counter);
+}
+thread turnstile(1);
+thread turnstile(2);
 </textarea>
 <button id="step">step</button>
 <button id="run">run</button>
@@ -33,13 +55,48 @@ function sum(int x, int y) {
 thread sum(1 + 2, 5);
 thread sum(6, z);
 
-private String foo;
-	public Test(int x) {
-		print("ok " + x);
+atomic {
+	if (__thread_count() == 0) {
+		permissions++;
+	} else {
+		__thread_wake();
 	}
-	public static int x(int x, int y) {
-		print(y + " " + x);
+}
+
+class Semaphore {
+	private int permissions;
+	public Semaphore(int perms) {
+		permissions = perms;
 	}
+	public atomic void acquire() {
+		if (permissions > 0) {
+			permissions--;
+		} else {
+			__thread_store(__thread_id());
+			__thread_sleep();
+		}
+	}
+	public atomic void release() {
+		if (__thread_count() == 0) {
+			permissions++;
+		} else {
+			int waking = __thread_unstore();
+			__thread_wake(waking);
+		}
+	}
+}
+public Semaphore mutex = new Semaphore(1);
+public int counter = 0;
+function turnstile(int id) {
+	for (int i = 0; i < 50; i++) {
+		mutex.acquire();
+		counter++;
+		mutex.release();
+	}
+	print(id + ": currently " + counter);
+}
+thread turnstile(1);
+thread turnstile(2);
 </div>
 	</body>
 	<script type="text/javascript" src="./js/threadbare.bundle.js"></script>

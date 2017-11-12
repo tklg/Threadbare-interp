@@ -15,6 +15,7 @@ import BlockStatement from './ast/BlockStatement.js';
 import ExpressionStatement from './ast/ExpressionStatement.js';
 import BuiltinMethod from './ast/BuiltinMethod.js';
 import FunctionExpression from './ast/FunctionExpression.js';
+import ArrayExpression from './ast/ArrayExpression.js';
 import ConstructorFunctionExpression from './ast/ConstructorFunctionExpression.js';
 import IFStatement from './ast/IFStatement.js';
 import ForStatement from './ast/ForStatement.js';
@@ -115,7 +116,7 @@ function ASTBuilder() {
 					var definitionBody = new FunctionExpression();
 					var body = new BlockStatement();
 					var iden = new Identifier();
-					while (tokens[i].type === 'typeModifier') {
+					while (tokens[i].type === 'typeModifier' || tokens[i].type === 'atomic') {
 						switch (tokens[i].value) {
 							case 'public':
 							case 'private':
@@ -124,6 +125,9 @@ function ASTBuilder() {
 								break;
 							case 'static':
 								expression.isStatic = true;
+								break;
+							case 'atomic':
+								body.atomic = true;
 								break;
 						}
 						i++;
@@ -280,7 +284,8 @@ function ASTBuilder() {
 					}
 				}
 				subsub = subTokens.slice(start, subTokens.length);
-				expression.addArgument(getSingleExpression(subsub));
+				if (subsub.length)
+					expression.addArgument(getSingleExpression(subsub));
 				i += subTokens.length + 2;
 				block.addToBody(expression);
 				continue;
@@ -342,6 +347,7 @@ function ASTBuilder() {
 				//Log.d(TAG, subTokens)
 				block.addToBody(getSingleExpression(subTokens));
 				i += subTokens.length;
+				continue;
 			} else if (isControlFlow(tokens, i)) {
 				// match for if, while, for
 
@@ -454,6 +460,18 @@ function ASTBuilder() {
 				expression.body = body;
 				i += subTokens.length + 2;
 				block.addToBody(expression);
+				continue;
+			} else if (isAtomicExpression(tokens, i)) {
+				var expression = new BlockStatement();
+				expression.atomic = true;
+				var indexes = findBlockIndexes(tokens, i, 'braceLeft');
+				var subTokens = tokens.slice(indexes.start + 1, indexes.end);
+				if (subTokens.length) {
+					getExpressions(expression, subTokens);
+				}
+				block.addToBody(expression);
+				i += subTokens.length + 2 + 1;
+				continue;
 			}
 			i++;
 		}
@@ -486,32 +504,6 @@ function ASTBuilder() {
 			var name = tokens[1].value;
 			ce.callee = name;
 			ce.isConstructor = true;
-			// find params
-			var indexes = findBlockIndexes(tokens, 0, 'function');
-			var paramTokens = tokens.slice(indexes.start + 1, indexes.end);
-			var len = 0;
-			if (paramTokens.length) {
-				var start = 0, end = 0;
-				var subsub = [];
-				for (var j = 0; j < paramTokens.length; j++) {
-					if (paramTokens[j].type === 'comma') {
-						end = j;
-						subsub = paramTokens.slice(start, end);
-						ce.addArgument(getSingleExpression(subsub));
-						start = j + 1;
-						len++;
-					}
-				}
-				subsub = paramTokens.slice(start, paramTokens.length);
-				ce.addArgument(getSingleExpression(subsub));
-				len++;
-			}
-			ce.callee += "_"+len;
-			return ce;
-		} else if (isCallExpression(tokens)) {
-			var ce = new CallExpression();
-			var name = tokens[0].value;
-			ce.callee = name;
 			// find params
 			var indexes = findBlockIndexes(tokens, 0, 'function');
 			var paramTokens = tokens.slice(indexes.start + 1, indexes.end);
@@ -569,12 +561,78 @@ function ASTBuilder() {
 			me.property = getSingleExpression(right);
 
 			return me;
+		} else if (isArrayExpression(tokens)) {
+			var ae = new ArrayExpression();
+			var indexes = findBlockIndexes(tokens, 0, 'braceLeft');
+			var subTokens = tokens.slice(indexes.start + 1, indexes.end);
+			var start = 0, end = 0;
+			var subsub = [];
+			for (var j = 0; j < subTokens.length; j++) {
+				if (subTokens[j].type === 'comma') {
+					end = j;
+					subsub = subTokens.slice(start, end);
+					//Log.d(TAG, subsub);
+					ae.addElement(getSingleExpression(subsub));
+					start = j + 1;
+				}
+			}
+			subsub = subTokens.slice(start, subTokens.length);
+			ae.addElement(getSingleExpression(subsub));
+			return ae;
 		} else if (isUnaryExpression(tokens)) {
 			return getUnaryExpression(tokens);
 		} else if (isBinaryExpression(tokens)) { // a + 1, must be after assignmentExpression
 			var bex = getBinaryExpression(tokens);
 			return bex;
-		} 
+		} else if (isBuiltinMethod(tokens, 0)) {
+			var expression = new BuiltinMethod();
+			expression.callee = tokens[0].value;
+			var indexes = findBlockIndexes(tokens, 0, 'builtin');
+			var subTokens = tokens.slice(indexes.start + 1, indexes.end);
+			//Log.d(subTokens);
+			// add args split by comma tokens
+			var start = 0, end = 0;
+			var subsub = [];
+			for (var j = 0; j < subTokens.length; j++) {
+				//Log.d(TAG, subTokens[j]);
+				if (subTokens[j].type === 'comma') {
+					end = j;
+					subsub = subTokens.slice(start, end);
+					expression.addArgument(getSingleExpression(subsub));
+					start = j + 1;
+				}
+			}
+			subsub = subTokens.slice(start, subTokens.length);
+			if (subsub.length)
+				expression.addArgument(getSingleExpression(subsub));
+			return expression;
+		} else if (isCallExpression(tokens)) {
+			var ce = new CallExpression();
+			var name = tokens[0].value;
+			ce.callee = name;
+			// find params
+			var indexes = findBlockIndexes(tokens, 0, 'function');
+			var paramTokens = tokens.slice(indexes.start + 1, indexes.end);
+			var len = 0;
+			if (paramTokens.length) {
+				var start = 0, end = 0;
+				var subsub = [];
+				for (var j = 0; j < paramTokens.length; j++) {
+					if (paramTokens[j].type === 'comma') {
+						end = j;
+						subsub = paramTokens.slice(start, end);
+						ce.addArgument(getSingleExpression(subsub));
+						start = j + 1;
+						len++;
+					}
+				}
+				subsub = paramTokens.slice(start, paramTokens.length);
+				ce.addArgument(getSingleExpression(subsub));
+				len++;
+			}
+			ce.callee += "_"+len;
+			return ce;
+		}
 	}
 	function getBinaryExpression(tokens) {
 		// 1 + 2
@@ -686,7 +744,7 @@ function ASTBuilder() {
 		var x = tokens.length;
 		var decs = [];
 		while (i < x && tokens.length > 0) {
-			//Log.d(tokens);
+			//Log.w(TAG, tokens);
 			if (isVariableDeclarator(tokens)) {
 				var decl = new VariableDeclarator();
 				var leftIdent = new Identifier();
@@ -735,6 +793,10 @@ function ASTBuilder() {
 		return tokens.length >= 1
 			&& tokens[i || 0].type === 'function';
 	}
+	function isArrayExpression(tokens) {
+		return tokens[0].type === 'braceLeft'
+			&& tokens.reduce((a, t) => a || t.type === 'comma', false);
+	}
 	function isBinaryExpression(tokens) {
 		return tokens.length >= 3
 			&& tokens.reduce((a, t) => {
@@ -773,6 +835,9 @@ function ASTBuilder() {
 	function isClassDeclaration(tokens, i) {
 		return tokens[i].type === 'class' && tokens[i + 1].type === 'objectType';
 	}
+	function isAtomicExpression(tokens, i) {
+		return tokens[i].type === 'atomic';
+	}
 	function findDeclarationRange(tokens, _i) {
 		var j = _i;
 		var i = _i;
@@ -783,8 +848,11 @@ function ASTBuilder() {
 	}
 	function findCommaIndex(tokens) {
 		var i = 0;
+		var balanceBrace = 0;
 		while (i < tokens.length) {
-			if (tokens[i].type === 'comma') break;
+			if (tokens[i].type === 'braceLeft') balanceBrace++;
+			if (tokens[i].type === 'braceRight') balanceBrace--;
+			if (tokens[i].type === 'comma' && balanceBrace == 0) break;
 			else i++;
 		}
 		return i;
@@ -822,11 +890,12 @@ function ASTBuilder() {
 		return tokens[i].value === 'public' && tokens[i + 1].type === 'function';
 	}
 	function isVariableDeclarator(tokens) {
-		if (tokens[0].type === 'variableName'/* && tokens[1] !== undefined && tokens[1].value === '='*/) { // x = ...
+		//Log.d(tokens);
+		if (['variableName', 'braceLeft'/*, 'bracketLeft', 'bracketRight'*/, 'new', 'objectType'].includes(tokens[0].type)/* && tokens[1] !== undefined && tokens[1].value === '='*/) { // x = ...
 			return true;
 		}
 		//Log.d(tokens[0]);
-		if (tokens[0].type === 'new' && tokens[1].type === 'objectType') return true;
+		//if (tokens[0].type === 'new' && tokens[1].type === 'objectType') return true;
 		return false;
 	}
 	function isThreadDeclaration(tokens, i) {

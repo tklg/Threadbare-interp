@@ -55,7 +55,7 @@ function TokenLinker() {
 						//linkTokens(tokens, j, stopInd);
 					}
 				}
-			} else if (tokens[i] instanceof ParenLeftToken && !tokens[i].matchingToken) {
+			} else if ((tokens[i] instanceof ParenLeftToken || tokens[i] instanceof FunctionToken) && !tokens[i].matchingToken) {
 				var balance = 0;
 				var sub = null;
 				for (var j = i + 1; j < stopInd; j++) {
@@ -77,13 +77,13 @@ function TokenLinker() {
 						} else {
 							balance--;
 						}
-					} else if (tokens[j] instanceof ParenLeftToken) {
+					} else if (tokens[j] instanceof ParenLeftToken || tokens[j] instanceof FunctionToken) {
 						balance++;
 						if (sub === null) sub = {start: +j, stop: null};
 						//linkTokens(tokens, j, stopInd);
 					}
 				}
-			} else if (tokens[i] instanceof FunctionToken && !tokens[i].matchingToken) { // a function is matched by name( so it needs a closing )
+			}/* else if (tokens[i] instanceof FunctionToken && !tokens[i].matchingToken) { // a function is matched by name( so it needs a closing )
 				var balance = 0;
 				var sub = null;
 				//console.log("found func at " + i);
@@ -107,13 +107,13 @@ function TokenLinker() {
 						} else {
 							balance--;
 						}
-					} else if (tokens[j] instanceof ParenLeftToken) {
+					} else if (tokens[j] instanceof ParenLeftToken || tokens[j] instanceof FunctionToken) {
 						balance++;
 						if (sub === null) sub = {start: +j, stop: null};
 						//linkTokens(tokens, j, stopInd);
 					}
 				}
-			} /*else if (tokens[i] instanceof ControlFlowToken && !tokens[i].matchingToken && tokens[i].type === 'controlflow') { // while, for, if (
+			} *//*else if (tokens[i] instanceof ControlFlowToken && !tokens[i].matchingToken && tokens[i].type === 'controlflow') { // while, for, if (
 				var balance = 0;
 				var sub = null;
 				//console.log("found func at " + i);
