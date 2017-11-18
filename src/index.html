@@ -19,31 +19,39 @@ class Semaphore {
 		if (permissions > 0) {
 			permissions--;
 		} else {
-			__thread_store(__thread_id());
+			__local_thread_store(__thread_id());
 			__thread_sleep();
 		}
+		// print("acq: " + n + " " + permissions + " " + __local_thread_count());
 	}
 	public atomic void release() {
-		if (__thread_count() == 0) {
+		// print("rel: " + n + " " + permissions + " " + __local_thread_count());
+		if (__local_thread_count() == 0) {
 			permissions++;
 		} else {
-			int waking = __thread_unstore();
+			String waking = __local_thread_unstore();
 			__thread_wake(waking);
 		}
 	}
 }
-public Semaphore mutex = new Semaphore(1);
+public Semaphore mutex = new Semaphore(1),
+		 m2 = new Semaphore(0);
 public int counter = 0;
 function turnstile(int id) {
-	for (int i = 0; i < 50; i++) {
+	int temp;
+	for (int i = 0; i < 10; i++) {
 		mutex.acquire();
-		counter++;
+		temp = counter;
+		counter = temp + 1;
 		mutex.release();
 	}
-	print(id + ": currently " + counter);
+	m2.release();
 }
 thread turnstile(1);
 thread turnstile(2);
+m2.acquire();
+m2.acquire();
+print("final count: " + counter);
 </textarea>
 <button id="step">step</button>
 <button id="run">run</button>
@@ -69,66 +77,40 @@ class Semaphore {
 		permissions = perms;
 	}
 	public atomic void acquire() {
+		print("perms: " + permissions);
 		if (permissions > 0) {
 			permissions--;
 		} else {
-			__thread_store(__thread_id());
+			__local_thread_store(__thread_id());
 			__thread_sleep();
 		}
 	}
 	public atomic void release() {
-		if (__thread_count() == 0) {
+		if (__local_thread_count() == 0) {
 			permissions++;
 		} else {
-			int waking = __thread_unstore();
+			String waking = __local_thread_unstore();
 			__thread_wake(waking);
 		}
 	}
 }
 public Semaphore mutex = new Semaphore(1);
+public Semaphore m2 = new Semaphore(-2);
 public int counter = 0;
 function turnstile(int id) {
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 10; i++) {
 		mutex.acquire();
 		counter++;
 		mutex.release();
+		//print(id + ": currently " + counter);
 	}
-	print(id + ": currently " + counter);
+	m2.release();
 }
 thread turnstile(1);
 thread turnstile(2);
+m2.acquire();
+print("final count: " + counter);
 </div>
 	</body>
-	<script type="text/javascript" src="./js/threadbare.bundle.js"></script>
-	<script type="text/javascript">
-		var b;
-		init();
-		document.getElementById('step').addEventListener('click', function(e) {
-			b.step();
-		});
-		document.getElementById('run').addEventListener('click', function(e) {
-			if (b.isDone()) {
-				b = null;
-				init();
-			}
-			b.start();
-		});
-
-		function init() {
-			b = new ThreadBare();
-			b.on('any', handle);
-			b.interpret(document.getElementById('e').value, 'random');
-		}
-		function handle(ev, val) {
-			if (ev.indexOf('error') > -1) {
-				console.error(ev +" : " + val);
-				return;
-			}
-			switch (ev) {
-				case 'stdout': return console.info(ev +" : %c" + val, 'color:#9977ee');
-				case 'stderr': return console.error(ev +" : " + val);
-				default: return console.log(ev +" : %c" + val, 'color:#888');
-			}
-		}
-	</script>
+	<script type="text/javascript" src="./js/app.bundle.js"></script>
 </html>

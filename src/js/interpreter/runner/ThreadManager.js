@@ -62,9 +62,15 @@ class ThreadManager {
 		}
 	}
 	next() {
+		if (this.allBlocked()) {
+			event.emit("threads.error", `Deadlock encountered: all threads are blocked. (${this.threads.length + (this.current ? 1 : 0)})`);
+			return;
+		}
 		var oid = this.current.getId();
 		if (this.threads.length < 1) return;
 		else if (this.threads.length === 1 && this.current !== null) {
+			// swap, unless queue is blocked
+			if (this.threads[0].isBlocked()) return;
 			if (this.type === ThreadType.QUEUE) {
 				var tmp = this.threads.shift();
 				this.threads.push(this.current);
@@ -76,9 +82,7 @@ class ThreadManager {
 					this.current = tmp;
 				}
 			}
-			if (this.current.isBlocked()) this.next();
 		} else {
-			var i = this.threads.length;
 			do {
 				if (this.type === ThreadType.QUEUE) {
 					var tmp = this.threads.shift();
@@ -90,17 +94,21 @@ class ThreadManager {
 					this.threads = this.threads.filter(t => t !== this.current);
 					//this.current = this.threads.splice(Math.floor(Math.random() * this.threads.length), 1);
 				}
-				i--;
-			} while (this.current.isBlocked() && i > 0);
+			} while (this.current.isBlocked());
 		}
 		//Log.d("CURRENT", this.current);
 		if (oid !== this.current.getId()) event.emit("thread.switch", this.current.getId());
 	}
 	getCurrent() {
-		Log.d("GETCURRENT", this.current);
+		//Log.d("GETCURRENT", this.current);
 		return this.current;
 	}
 	step() {
+		// check to see if all threads are blocked
+		if (this.allBlocked()) {
+			event.emit("threads.error", `Deadlock encountered: all threads are blocked. (${this.threads.length + (this.current ? 1 : 0)})`);
+			return;
+		}
 		if (this.current) this.current.step();
 		if (this.current && this.current.isDone()) this.removeThread(this.current);
 	}
@@ -109,6 +117,9 @@ class ThreadManager {
 			/*&& this.threads.reduce((a, t) => {
 				a && t.isDone();
 			}, true);*/
+	}
+	allBlocked() {
+		return this.current.isBlocked() && this.threads.reduce((a, t) => a && t.isBlocked(), true)
 	}
 }
 const ThreadType = {

@@ -1,5 +1,6 @@
 class Environment {
 	constructor(env) {
+		this.id = Date.now();
 		this.parentEnv = env || null;
 		this.env = {};
 	}
@@ -9,6 +10,10 @@ class Environment {
 	addEntryToGlobal(en) {
 		if (this.parentEnv === null) this.addEntry(en);
 		else this.parentEnv.addEntryToGlobal(en);
+	}
+	getRoot() {
+		if (this.parentEnv === null) return this;
+		else return this.parentEnv.getRoot();
 	}
 	updateEntry(name, val) {
 		this.getEntry(name).setValue(val);

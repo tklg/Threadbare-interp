@@ -14,13 +14,7 @@ var browserSync = require('browser-sync').create();
 
 var dev = (process.env.NODE_ENV || 'development').trim() == 'development';
 
-gulp.task('default', ['build']);
-
-var ps = ['js', 'html', 'css', 'fonts'];
-var ts = ['html', 'serve'];
-if (argv.single) ts = ps;
-
-gulp.task('build', ts);
+gulp.task('default', ['html', 'serve']);
 
 gulp.task('js', function() {
     //return gulp.src(['src/js/login.js'])
@@ -36,7 +30,7 @@ gulp.task('js-watch',/* ['js'],*/ function (done) {
     //browserSync.reload();
     //done();
 });
-gulp.task('css1', function() {
+gulp.task('css', function() {
     gulp.src(['src/css/bsh.*css'])
         .pipe(sass(argv.single ? {
             outputStyle: 'compressed'
@@ -70,7 +64,7 @@ gulp.task('serve', function() {
         }
     });
     gulp.watch('src/js/**', ['js-watch']);
-    gulp.watch('src/css/**', ['css1']);
+    gulp.watch('src/css/**', ['css']);
     gulp.watch('src/*.html', ['html-watch']);
 })
 /*gulp.task('watch', function() {

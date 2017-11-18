@@ -2,18 +2,28 @@ import Environment from './../../environment/Environment.js';
 import clone from 'clone';
 
 class Class/* extends Environment */ {
-	constructor() {
+	constructor(env) {
 		//super(null);
+		this.id = Date.now();
+		this.parentEnv = env || null;
 		this._name;
 		this._entries = {};
 		this._constructors = {};
 		this._environment = null;
 	}
 	addEntry(en) {
-		if (!this._entries[en.getName()]) this._entries[en.getName()] = en;
+		/*if (!this._entries[en.getName()]) */this._entries[en.getName()] = en;
+	}
+	addEntryToGlobal(en) {
+		if (this.parentEnv === null) this.addEntry(en);
+		else this.parentEnv.addEntryToGlobal(en);
 	}
 	getEntry(n) {
-		return this._entries[n];
+		return this._entries[n] || (this.parentEnv ? this.parentEnv.getEntry(n) : null);
+	}
+	getRoot() {
+		if (this.parentEnv === null) return this;
+		else return this.parentEnv.getRoot();
 	}
 	addConstructor(en) {
 		if (!this._constructors[en.getName()]) this._constructors[en.getName()] = en;

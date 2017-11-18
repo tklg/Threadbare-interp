@@ -21,6 +21,9 @@ class BlockStatement extends AbstractElement {
 			i.environment = env;
 		}
 	}
+	get environment() {
+		return this._environment;
+	}
 	get hasRun() {
 		return this._hasRun || false;
 	}

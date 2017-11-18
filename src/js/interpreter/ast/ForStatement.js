@@ -61,7 +61,6 @@ class ForStatement extends AbstractElement {
 	step() {
 		// for loop does not check the test on each step
 		if (!this._init.isDone()) {
-			Log.d('istep');
 			this._init.step();
 			return;
 		} else if (this._test && !this._test.isDone()) {

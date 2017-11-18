@@ -45,5 +45,10 @@ class MethodDefinition extends AbstractElement {
 	set visibility(v) {
 		this._visibility = v;
 	}
+	set environment(env) {
+		super.environment = env;
+		this._key.environment = env;
+		this._value.environment = env;
+	}
 }
 export default MethodDefinition;

@@ -430,7 +430,7 @@ function ASTBuilder() {
 				}
 
 				// if IFStatement, check for an else
-				if (expression instanceof IFStatement && tokens[i].value === 'else') {
+				if (expression instanceof IFStatement && tokens[i] && tokens[i].value === 'else') {
 					var resAlt = getControlFlowAlternate(tokens.slice(i));
 					expression.alternate = resAlt.body;
 					i += resAlt.length;

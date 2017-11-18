@@ -17,6 +17,7 @@ class Runner {
 		this.delay = 3;
 		this.interval = null;
 		event.on('thread.error', this.stop.bind(this));
+		event.on('threads.error', this.stop.bind(this));
 	}
 	step() {
 		if (!this._started) {
@@ -39,7 +40,7 @@ class Runner {
 			}
 			this.tm.next();
 			try {
-				this.tm.step();
+				if (this.interval) this.tm.step();
 			} catch (e) {
 				Log.e(TAG, e);
 				this.stop();
@@ -54,6 +55,7 @@ class Runner {
 	stop() {
 		event.emit('runner.stop');
 		clearInterval(this.interval);
+		this.interval = null;
 		//this.init(this._tree);
 	}
 	done() {

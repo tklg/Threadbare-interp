@@ -41,6 +41,12 @@ class MemberExpression extends AbstractElement {
 		} else if (!this._evalProperty) {
 			if (this._property.type === 'CallExpression') {
 				this._property.environment = this._evalObject;
+				// arguments of a callexpression use original env
+				if (this._property.arguments) {
+					for (var arg of this._property.arguments) {
+						arg.environment = this._environment;
+					}
+				}
 				this._evalProperty = this._property;
 			} else {
 				this._evalProperty = this._evalObject.getEntry(this._property.name).getValue();

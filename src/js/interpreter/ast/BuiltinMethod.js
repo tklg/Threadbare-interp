@@ -2,11 +2,11 @@ import CallExpression from './CallExpression.js';
 import Literal from './Literal.js';
 import Log from './../../logger/Log.js';
 import Eventify from './../../Eventify.js';
+import EnvEntry from './../environment/EnvEntry.js';
 import ThreadManager from './../runner/ThreadManager.js';
 
 const event = Eventify.getInstance();
 const TAG = "BuiltinMethod";
-const tm = ThreadManager.getInstance();
 // print(x)
 class BuiltinMethod extends CallExpression {
 	constructor() {
@@ -29,6 +29,7 @@ class BuiltinMethod extends CallExpression {
 			return;
 		}
 		// depending on callee, do something with arguments
+		var tm = ThreadManager.getInstance();
 		switch (this._callee) {
 			case 'print':
 				var res = '';
@@ -47,10 +48,12 @@ class BuiltinMethod extends CallExpression {
 				event.emit('stderr', res);
 				break;
 			case 'sleep': break;
-			case '__thread_sleep': 
+			case '__thread_sleep':
+				//Log.d(TAG, "pause");
 				tm.pauseCurrent();
 				break;
 			case '__thread_wake':
+				//Log.d(TAG, "resume");
 				var id;
 				if (this._arguments.length) id = this._arguments[0].eval().value;
 				if (id) tm.resume(id);
@@ -58,16 +61,29 @@ class BuiltinMethod extends CallExpression {
 				break;
 			case '__thread_id':
 				var lit = new Literal();
-				Log.d(tm.getCurrent());
+				//Log.d(tm.getCurrent());
 				lit.value = tm.getCurrent().getId();
+				lit.raw = "\""+tm.getCurrent().getId()+"\"";
+				lit.valueType = 'String';
+				this._returnValue = lit;
+				break;
+			case '__local_thread_count': 
+				var ee = this._environment.getRoot().getEntry('__threadbare_threadstore');
+				var val = ee ? ee.getValue() : [];
+				//console.log(this._environment);
+				//Log.d(TAG, "local thread count: " + val.length);
+				var lit = new Literal();
+				lit.value = val.length;
+				lit.raw = ''+val.length;
 				lit.valueType = 'int';
 				this._returnValue = lit;
-			case '__thread_count': break;
-			case '__thread_store': 
-				var ee = this._environment.getEntry('__threadbare_threadstore');
+				break;
+			case '__local_thread_store': 
+				var ee = this._environment.getRoot().getEntry('__threadbare_threadstore');
 				if (!ee) {
 					ee = new EnvEntry();
 					ee.setName('__threadbare_threadstore');
+					ee.addTag(Date.now());
 					ee.setValue([]);
 				}
 				// store literal to js array
@@ -75,20 +91,25 @@ class BuiltinMethod extends CallExpression {
 				var val = ee.getValue();
 				val.push(id);
 				ee.setValue(val);
-				this._environment.addEntry(ee);
-				Log.d(TAG, "stored thread " + val);
+				this._environment.addEntryToGlobal(ee);
+				//console.log("store " + this._environment.getRoot().id);
+				//Log.d(TAG, "stored thread " + val);
 				break;
-			case '__thread_unstore': 
-				var ee = this._environment.getEntry('__threadbare_threadstore');
+			case '__local_thread_unstore': 
+				var ee = this._environment.getRoot().getEntry('__threadbare_threadstore');
 				if (!ee) break;
 				var val = ee.getValue();
 				var id = val[Math.floor(Math.random() * val.length)];
-				Log.d(TAG, "unstore thread " + id);
+				val = val.filter(x => x !== id);
+				ee.setValue(val);
+				this._environment.addEntryToGlobal(ee);
+				//console.log("unstore " + this._environment.getRoot().id);
+				//Log.d(TAG, "unstore thread " + id);
 				// put back into an int literal
 				var lit = new Literal();
 				lit.value = id;
-				lit.raw = ''+id;
-				lit.valueType = 'int';
+				lit.raw = "\"" + id + "\"";
+				lit.valueType = 'String';
 				this._returnValue = lit;
 				break;
 		}

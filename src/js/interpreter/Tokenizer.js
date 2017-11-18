@@ -36,8 +36,8 @@ const tokenRegex = {
 	variableName: /^\s*([a-z\$_][a-z0-9\$_]*)/i,
 	dot: /(\.)/,
 	operatorShorthand: /^\s*(\+\+|--|\+=|-=|\*=|\/=|%=|\^=|\|=|&=|>>=|<<=)/,
-	operator: /^\s*(\+|-|\*|\/|%|==|!=|>>|<<|>=|<=|>|<|=|!|~)/,
-	valueInteger: /^\s*(\d+)/,
+	operator: /^\s*(\+|-|\*|\/|%|==|&&|\|\||!=|>>|<<|>=|<=|>|<|=|!|~)/,
+	valueInteger: /^\s*(-?\d+)/,
 	valueChar: /^\s*'(.)'/,
 	valueString: /^\s*"(.+?)"/,
 	valueBool: /^\s*(true|false)/,
@@ -49,7 +49,7 @@ const tokenRegex = {
 	functionDeclaration: /^\s*(function)/,
 	atomic: /^\s*(atomic)/,
 	label: /^\s*([a-z\$_][a-z0-9\$_]*):/i,
-	builtin: /^\s*(print|error|sleep|__thread_sleep|__thread_wake|__thread_count|__thread_id|__thread_store|__thread_unstore) *\(/, // func(
+	builtin: /^\s*(print|error|sleep|__thread_sleep|__thread_wake|__local_thread_count|__thread_id|__local_thread_store|__local_thread_unstore) *\(/, // func(
 	function: /^\s*([a-z\$_][a-z0-9\$_]*) *\(/i, // func(
 	paramLabel: /^\s*((?:[a-z\$_][a-z0-9\$_]*)\s*\([a-z\$_][a-z0-9\$_, ]*\)):/i,
 	braceLeft: /^\s*({)/,
@@ -79,7 +79,6 @@ const matchOrder = [
 	'operatorShorthand',
 	'primitiveType',
 	'objectType',
-	'operator',
 	'comma',
 	'semicolon',
 	'braceLeft',
@@ -93,6 +92,7 @@ const matchOrder = [
 	'valueBool',
 	'valueInteger',
 	'variableName',
+	'operator',
 	'dot',
 ];
 

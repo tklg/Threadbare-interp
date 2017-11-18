@@ -7,7 +7,7 @@ module.exports = {
         modules: ["./src/js/", "./node_modules/"]
     },
     entry: {
-        threadbare: './src/js/threadbare.js'
+        app: './src/js/app.js'
     },
     output: {
         filename: '[name].bundle.js',

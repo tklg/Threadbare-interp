@@ -21,7 +21,7 @@ class Identifier extends AbstractElement {
 		return true;
 	}
 	eval() {
-		//console.log(JSON.parse(JSON.stringify(this._environment)));
+		//if (this._name == 'id') console.log(this._environment);
 		var ee = this._environment.getEntry(this._name);
 		if (ee) return ee.getValue();
 		else throw this._name + " is not defined in the environment.";
