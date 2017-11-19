@@ -15,7 +15,7 @@ export default class ASTViewer extends React.Component {
 	getTreeString() {
 		var cache = [];
 		var str = this.props.ast;
-		var html = true;
+		var html = false;
 		return JSON.stringify(str, function(key, value) {
 			if (['_hasRun', '_declIndex', '_stepIndex', '_argsIndex', '_raw'].includes(key)) return;
 		    if (typeof value === 'object' && value !== null) {
