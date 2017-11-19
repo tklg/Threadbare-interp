@@ -13,6 +13,7 @@ export default class FileManager extends React.Component {
 		this.createFile = this.createFile.bind(this);
 		this.getFileItem = this.getFileItem.bind(this);
 		this.handleFileNameInput = this.handleFileNameInput.bind(this);
+		this.deleteFile = this.deleteFile.bind(this);
 	}
 	componentDidMount() {
 		window.addEventListener("resize", this.resize);
@@ -43,13 +44,24 @@ export default class FileManager extends React.Component {
 		})
 
 	}
+	deleteFile(e, id) {
+		e.stopPropagation();
+		this.props.deleteFile(id);
+	}
 	getFileItem(f, i) {
+		var ext = f.name.substring(f.name.lastIndexOf('.') + 1);
 		return (
 			<div 
-				className="file" 
+				className={"file" + " ext-" + ext} 
 				key={i}
-				onClick={(e) => this.props.openFile(f.id)}>
-				{f.name}
+				onClick={(e) => this.props.openFile(f.id)}
+				title={f.name}>
+				<span>{f.name}</span>
+				<button className="btn" onClick={(e) => this.deleteFile(e, f.id)}>
+					<svg viewBox="0 0 24 24">
+					    <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+					</svg>
+				</button>
 			</div>
 		);
 	}

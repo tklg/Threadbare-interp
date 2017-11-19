@@ -6,9 +6,11 @@ export default class Console extends React.Component {
 		super();
 		this.state = {
 			height: 0,
+			displayAll: false
 		}
 		this.resize = this.resize.bind(this);
 		this.getLine = this.getLine.bind(this);
+		this.setCheckValue = this.setCheckValue.bind(this);
 	}
 	componentDidMount() {
 		window.addEventListener("resize", this.resize);
@@ -26,13 +28,30 @@ export default class Console extends React.Component {
 			<div className={"line" + (" " + line.type)} key={i} title={line.text}>{line.text}</div>
 		);
 	}
+	setCheckValue(e) {
+		e.stopPropagation();
+		this.setState({displayAll: e.target.checked});
+	}
 	render() {
+		var lines = this.props.lines;
+		if (!this.state.displayAll) {
+			lines = lines.filter(line => {
+				return line.type === 'stdout' || line.type === 'stderr';
+			});
+		}
 		return (
 			<section 
 				className="view-console"
 				ref={elem => this.elem = elem}>
 				<header className="header">
-					Output
+					<span>Output</span>
+					<label>
+						<span>Display all output</span>
+						<input 
+							type="checkbox" 
+							onChange={this.setCheckValue}
+							checked={this.state.displayAll} />
+					</label>
 				</header>
 				<Infinite
 					className="infinite-scroller"
@@ -40,7 +59,7 @@ export default class Console extends React.Component {
 					elementHeight={18}
 					//displayBottomUpwards={true} 
 					>
-					{this.props.lines.map(this.getLine)}
+					{lines.map(this.getLine)}
 				</Infinite>
 			</section>
 		);

@@ -16,6 +16,18 @@
 ::selection {
 	background: rgba(127,166,140,.4);
 }
+::-webkit-scrollbar {
+	width: 12px;
+}
+::-webkit-scrollbar-track {
+	background: $theme-background-hover;
+}
+::-webkit-scrollbar-thumb {
+	background: rgba(255,255,255,.2);
+}
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(255,255,255,.3);
+}
 body {
 	background: $theme-background;
 	overflow: hidden;
@@ -142,8 +154,9 @@ body {
 			border: none;
 			border-radius: 3px;
 			height: 20px;
+			width: 30px;
 			line-height: 20px;
-			margin: 5px 0;
+			margin: 5px 10px 5px 0;
 			outline: none;
 			cursor: pointer;
 			padding-right: 10px;
@@ -186,7 +199,7 @@ body {
 	.file {
 		height: 24px;
 		width: 100%;
-		line-height: 24px;
+		// line-height: 24px;
 		display: block;
 		color: $text-light;
 		padding: 0 10px;
@@ -206,6 +219,45 @@ body {
 			left: 0;
 			background: rgba(255,255,255,.08);
 		}
+		&.ext-jtbc {
+			color: $accent-5;
+		}
+		&.ext-jtb {
+
+		}
+		span {
+			display: inline-block;
+			margin: 2px 0;
+		}
+		.btn {
+			position: relative;
+			float: right;
+			background: transparent;
+			border: none;
+			border-radius: 3px;
+			outline: none;
+			height: 20px;
+			width: 20px;
+			padding: 0;
+			line-height: 20px;
+			margin: 2px 0;
+			cursor: pointer;
+
+			&:hover {
+				background: #F46161;
+				path {
+					fill: white;
+				}
+			}
+			svg {
+				height: 20px;
+				width: 20px;
+
+				path {
+					fill: $text-hint;
+				}
+			}
+		}
 	}
 }
 .view-console {
@@ -223,9 +275,52 @@ body {
 		color: $text-light;
 		padding: 0 10px;
 		border-bottom: 1px solid $accent-2;
+
+		label {
+			float: right;
+			// line-height: 30px;
+			display: inline-block;
+			user-select: none;
+
+			span {
+				display: inline-block;
+				padding-right: 6px;
+				font-size: $font-size-med;
+			}
+			input[type=checkbox] {
+				position: relative;
+			}
+			input[type=checkbox]:after,
+			input[type=checkbox]:before {
+				position: absolute;
+				content: "";
+				height: 20px;
+				width: 20px;
+				top: -4px;
+				left: -3px;
+				border-radius: 3px;
+				background: $theme-background;
+				border: 1px solid $accent-5;
+				cursor: pointer;
+			}
+			input[type=checkbox]:checked:after {
+				// background: $accent-5;
+			}
+			input[type=checkbox]:after {
+				// border: none;
+				content: "";
+				color: white;
+				font-size: 13px;
+				@include flex-center;
+			}
+			input[type=checkbox]:checked:after {
+				content: "✕";
+			}
+		}
 	}
 	.infinite-scroller {
 		overflow-y: auto !important;
+		width: 100%;
 	}
 	.line {
 		height: 18px;
@@ -322,5 +417,33 @@ body {
 			height: 100%;
 			@include flex-center;
 		}
+	}
+}
+.view-ast {
+	header {
+		position: relative;;
+		height: 30px;
+		line-height: 30px;
+		background: $theme-header;
+		color: $text-light;
+		padding: 0 10px;
+		border-bottom: 1px solid $accent-2;
+	}
+
+	textarea,
+	pre,
+	div {
+		background: $theme-header;
+		color: $text-light;
+		font-family: monospace;
+		overflow: auto;
+		border: none;
+		outline: none;
+		margin: 0;
+		padding: 0;
+		height: calc(100% - 30px);
+		// width: 100%;
+		white-space: pre;
+		// padding-bottom: 32px;
 	}
 }

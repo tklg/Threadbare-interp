@@ -16,20 +16,31 @@ export default class Header extends React.Component {
 				<h1>Threadbare</h1>
 				<nav className="controls">
 					<button 
-						className="btn parse"
-						onClick={this.props.onClickParse}>
-						Parse
-					</button>
-					<button 
-						className="btn start"
-						onClick={this.props.onClickStart}>
-						Start
-					</button>
-					<button 
-						className="btn step"
-						onClick={this.props.onClickStep}>
-						Step
-					</button>
+						className="btn show-ast"
+						onClick={(e) => this.props.onClickShowAST()}>
+						{this.props.showingAST ? "View editor" : "View AST"}
+					</button> 
+					{!this.props.showingAST &&
+						<button 
+							className="btn parse"
+							onClick={this.props.onClickParse}>
+							Parse
+						</button>
+					}
+					{!this.props.showingAST &&
+						<button 
+							className="btn start"
+							onClick={this.props.onClickStart}>
+							Start
+						</button>
+					}
+					{!this.props.showingAST &&
+						<button 
+							className="btn step"
+							onClick={this.props.onClickStep}>
+							Step
+						</button>
+					}
 					{/*<button 
 						className="btn stop"
 						onClick={this.props.onClickStop}>

@@ -20,7 +20,8 @@ export default class TabList extends React.Component {
 		return (
 			<div className={"tab" + (tab.id === this.props.currentTab ? " active" : "")}
 				key={i}
-				onClick={(e) => this.props.onClick(tab.id)}>
+				onClick={(e) => this.props.onClick(tab.id)}
+				title={tab.name}>
 				<span>{tab.name}</span>
 				{!tab.fake 
 				 && <div className="icon" onClick={(e) => this.onCloseClick(e, tab.id)}>

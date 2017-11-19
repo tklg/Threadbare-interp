@@ -798,7 +798,7 @@ function ASTBuilder() {
 			&& tokens.reduce((a, t) => a || t.type === 'comma', false);
 	}
 	function isBinaryExpression(tokens) {
-		Log.d(TAG, tokens);
+		//Log.d(TAG, tokens);
 		return tokens.length >= 3
 			&& tokens.reduce((a, t) => {
 				return a || isOperator(t);

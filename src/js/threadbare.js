@@ -13,6 +13,7 @@ function ThreadBare() {
 		.then(tree => {
 			runner = new Runner(tree, threadType);
 			//Log.d(TAG, runner);
+			//Eventify.getInstance().emit('interpret.done', e);
 		})
 		.catch(e => {
 			Eventify.getInstance().emit('interpret.error', e);
@@ -27,9 +28,9 @@ function ThreadBare() {
 		if (!runner) return;
 		runner.stop();
 	}
-	this.step = function() {
+	this.step = function(arg) {
 		if (!runner) return;
-		runner.step();
+		runner.step(arg || undefined);
 	}
 	this.reset = function() {
 		runner = null;

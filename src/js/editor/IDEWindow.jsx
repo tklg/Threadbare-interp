@@ -4,6 +4,7 @@ import FlexContainer from './views/FlexContainer.jsx';
 import FileManager from './views/FileManager.jsx';
 import Console from './views/Console.jsx';
 import Editor from './views/Editor.jsx';
+import ASTViewer from './views/ASTViewer.jsx';
 import Threadbare from './../Threadbare.js';
 import SFS from './components/SessionFilesystem.js';
 
@@ -17,6 +18,8 @@ export default class IDEWindow extends React.Component {
 			currentTab: -1,
 			consoleLines: [],
 			files: [],
+			astVisible: false,
+			ast: [],
 		}
 		this.handleOutput = this.handleOutput.bind(this);
 		this.collectContent = this.collectContent.bind(this);
@@ -33,6 +36,8 @@ export default class IDEWindow extends React.Component {
 		this.openFile = this.openFile.bind(this);
 		this.getFileFromId = this.getFileFromId.bind(this);
 		this.getCurrentFile = this.getCurrentFile.bind(this);
+		this.deleteFile = this.deleteFile.bind(this);
+		this.showAST = this.showAST.bind(this);
 		this.threadbareInstance = null;
 	}
 	componentDidMount() {
@@ -45,6 +50,9 @@ export default class IDEWindow extends React.Component {
 		this.threadbareInstance = tb;
 	}
 	handleOutput(ev, val) {
+		if (ev === 'ast.ready') {
+			this.setState({ast: val});
+		}
 		var line = {};
 		switch (ev) {
 			case 'stdout':
@@ -78,7 +86,20 @@ export default class IDEWindow extends React.Component {
 	}
 	// collect header files and prepend them to the current file
 	collectContent() {
-		return this.getCurrentFile().content;
+		var current = this.getCurrentFile();
+		if (current.name.substring(current.name.lastIndexOf('.') + 1) === 'jtb') {
+			return current.content;
+		}
+		var content = '';
+		var files = this.state.files.filter(x => {
+			var ext = x.name.substring(x.name.lastIndexOf('.') + 1);
+			return x.id !== this.state.currentTab && ext === 'jtbc';
+		});
+		for (var f of files) {
+			content += f.content;
+		}
+
+		return content + current.content;
 		//return this.state.files[this.state.currentTab].content;
 	}
 	onEditorChange(value, e) {
@@ -92,6 +113,7 @@ export default class IDEWindow extends React.Component {
 		//var current = this.state.files[this.state.currentTab];
 		SFS.saveFile(current);
 		this.setState({currentTab: i});
+		this.setState({needsToBeParsed: true});
 	}
 	openFile(i) {
 		var files = this.state.files;
@@ -108,6 +130,7 @@ export default class IDEWindow extends React.Component {
 	}
 	closeTab(i) {
 		var tabs = this.state.files;
+		var fTabs = tabs.filter(x => x.hasTab);
 		//var current = this.state.files[i];
 		for (var f of tabs) {
 			if (f.id === i) {
@@ -118,10 +141,21 @@ export default class IDEWindow extends React.Component {
 
 		//var current = this.getFileFromId(i);
 		//tabs = tabs.filter(t => t !== current);
-		var nextIndex = (i === this.state.currentTab) ? this.state.currentTab - 1 : this.state.currentTab;
+		var ind = 0;
+		for (var f of fTabs) {
+			if (f.id === i) break;
+			ind++;
+		}
+		if (fTabs.length > 1) {
+			this.openFile(fTabs[(ind + 1) % fTabs.length].id);
+		} 
+		/*
+		var nextIndex = (i === this.state.currentTab) ? ind - 1 : ind;
 		if (nextIndex < 0) nextIndex = 0;
+		console.log(nextIndex);
+		console.log(fTabs);
+		var nextId = fTabs[nextIndex].id;*/
 		this.setState({
-			currentTab: nextIndex,
 			tabs: tabs,
 		});
 	}
@@ -144,15 +178,31 @@ export default class IDEWindow extends React.Component {
 			this.threadbareInstance = null;
 			this.createThreadbare();
 		}
-		if (this.state.needsToBeParsed) this.parse();
-		this.threadbareInstance.start();
+		if (this.state.needsToBeParsed) {
+			this.parse();
+			setTimeout(() => {
+				this.threadbareInstance.start();
+			}, 300);
+		} else {
+			this.threadbareInstance.start();
+		}
 	}
 	stop() {
 		if (this.threadbareInstance) this.threadbareInstance.stop();
 	}
 	step() {
-		if (this.state.needsToBeParsed) this.parse();
-		if (this.threadbareInstance) this.threadbareInstance.step();
+		if (this.threadbareInstance.isDone()) {
+			this.threadbareInstance = null;
+			this.createThreadbare();
+		}
+		if (this.state.needsToBeParsed) {
+			this.parse();
+			setTimeout(() => {
+				this.threadbareInstance.step(true);
+			}, 300);
+		} else {
+			this.threadbareInstance.step(true);
+		}
 	}
 	createFile(name) {
 		SFS.createFile(name);
@@ -160,6 +210,10 @@ export default class IDEWindow extends React.Component {
 		this.loadFiles();
 
 //		this.changeTab(this.state.files.indexOf(SFS.getFile(name)));
+	}
+	deleteFile(id) {
+		SFS.deleteFile(id);
+		this.loadFiles();
 	}
 	loadFiles() {
 		var files = SFS.listFiles();
@@ -174,11 +228,21 @@ export default class IDEWindow extends React.Component {
 			return 0;
 		});
 		if (this.state.currentTab === -1 && list.length)  {
-			this.setState({currentTab: list[0].id}, () => {
+			this.setState({currentTab: list.filter(x => x.hasTab)[0].id}, () => {
 				this.setState({files: list});
 			});
 		} else if (list.length) {
 			this.setState({files: list});
+		}
+	}
+	showAST() {
+		if (this.state.needsToBeParsed) {
+			this.parse();
+			setTimeout(() => {
+				this.setState({astVisible: !this.state.astVisible});
+			}, 300);
+		} else {
+			this.setState({astVisible: !this.state.astVisible});
 		}
 	}
 	render() {
@@ -196,22 +260,37 @@ export default class IDEWindow extends React.Component {
 		return (
 			<FlexContainer flexDirection="col">
 				<Header 
+					showingAST={this.state.astVisible}
+					onClickShowAST={(show) => this.showAST()}
 					onClickParse={this.parse}
 					onClickStart={this.start}
 					onClickStep={this.step}
 					onClickStop={this.stop}/>
 				<FlexContainer flexDirection="row">
-					<Editor 
+					{!this.state.astVisible && 
+						<Editor 
 						tabs={tabs}
 						currentTab={this.state.currentTab}
 						onChange={this.onEditorChange}
 						onTabClick={this.changeTab}
 						onTabCloseClick={this.closeTab} />
-					<Console lines={this.state.consoleLines} />
-					<FileManager 
+					}
+					{!this.state.astVisible && 
+						<Console
+						lines={this.state.consoleLines} />
+					}
+					{!this.state.astVisible && 
+						<FileManager 
 						files={this.state.files}
 						onCreateFile={this.createFile}
+						deleteFile={this.deleteFile}
 						openFile={this.openFile} />
+					}
+					{this.state.astVisible &&
+						<ASTViewer 
+							fileName={this.getCurrentFile().name}
+							ast={this.state.ast} />
+					}
 				</FlexContainer>
 			</FlexContainer>
 		);

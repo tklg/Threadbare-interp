@@ -19,7 +19,7 @@ class Runner {
 		event.on('thread.error', this.stop.bind(this));
 		event.on('threads.error', this.stop.bind(this));
 	}
-	step() {
+	step(run) {
 		//Log.d(TAG, "step");
 		if (!this._started) {
 			ThreadManager.reset();
@@ -41,7 +41,7 @@ class Runner {
 			}
 			this.tm.next();
 			try {
-				if (this.interval) this.tm.step();
+				if (this.interval || run) this.tm.step();
 			} catch (e) {
 				Log.e(TAG, e);
 				this.stop();

@@ -4,31 +4,39 @@ var files = JSON.parse(window.localStorage.getItem('threadbare_files') || '{}');
 
 class SessionFilesystem {
 	static createFile(name) {
+		var id = Unique.get()
 		var file = {
 			name: name,
 			content: '',
 			hasTab: true,
 			fake: false,
-			id: Unique.get(),
+			id: id,
 		};
-		if (files[name]) throw `cannot create file "${name}": it already exists`;
-		files[name] = file;
+		//if (files[name]) throw `cannot create file "${name}": it already exists`;
+		files[id] = file;
 		SessionFilesystem.persist();
+		return id;
 	}
 	static saveFile(file) {
 		if (!file || file.fake) return;
-		if (!files[file.name]) SessionFilesystem.createFile(file.name);
-		files[file.name].content = file.content;
+		var id;
+		if (!files[file.id]) {
+			id = SessionFilesystem.createFile(file.name);
+			files[id].content = file.content;
+		} else {
+			files[file.id].content = file.content;
+		}
 		SessionFilesystem.persist();
-		return files[name];
+		return files[id || file.id];
 	}
-	static getFile(name) {
-		if (!files[name]) throw `Cannot get file "${name}: it does not exist`;
-		return files[name];
+	static getFile(id) {
+		if (!files[id]) throw `Cannot get file "${id}: it does not exist`;
+		return files[id];
 	}
-	deleteFile(name) {
-		if (!files[name]) return;
-		delete files[name];		
+	static deleteFile(id) {
+		if (!files[id]) return;
+		delete files[id];		
+		SessionFilesystem.persist();
 	}
 	static listFiles() {
 		return files;
