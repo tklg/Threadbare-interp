@@ -4,6 +4,7 @@ import Log from './../../logger/Log.js';
 import Eventify from './../../Eventify.js';
 import EnvEntry from './../environment/EnvEntry.js';
 import ThreadManager from './../runner/ThreadManager.js';
+import Unique from './../Unique.js';
 
 const event = Eventify.getInstance();
 const TAG = "BuiltinMethod";
@@ -47,7 +48,16 @@ class BuiltinMethod extends CallExpression {
 				}
 				event.emit('stderr', res);
 				break;
-			case 'sleep': break;
+			case 'sleep':
+				var delay;
+				var id = tm.getCurrent().getId();
+				tm.pauseCurrent();
+				if (this._arguments.length) delay = this._arguments[0].eval().value;
+				else throw "function sleep/0 not found";				
+				setTimeout(function() {
+					tm.resume(id);
+				}, parseInt(delay));
+				break;
 			case '__thread_sleep':
 				//Log.d(TAG, "pause");
 				tm.pauseCurrent();
@@ -83,7 +93,7 @@ class BuiltinMethod extends CallExpression {
 				if (!ee) {
 					ee = new EnvEntry();
 					ee.setName('__threadbare_threadstore');
-					ee.addTag(Date.now());
+					ee.addTag(Unique.get());
 					ee.setValue([]);
 				}
 				// store literal to js array

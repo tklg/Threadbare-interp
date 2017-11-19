@@ -101,7 +101,7 @@ function Tokenizer(_str) {
 	var str = _str;
 	var workingStr = str;
 	var parsedStr = '';
-	var linesArr = _str.split('\n')/*.map(ln => ln + '\n')*/;
+	var linesArr = _str.replace(/\t/g, '').split(/\r?\n/)/*.map(ln => ln + '\n')*/;
 	//Log.d("LNS", JSON.parse(JSON.stringify(linesArr)));
 	var lineNo = 1;
 	var index = 0;

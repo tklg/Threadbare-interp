@@ -1,10 +1,11 @@
 import Environment from './../../environment/Environment.js';
 import clone from 'clone';
+import Unique from './../../Unique.js';
 
 class Class/* extends Environment */ {
 	constructor(env) {
 		//super(null);
-		this.id = Date.now();
+		this.id = Unique.get();
 		this.parentEnv = env || null;
 		this._name;
 		this._entries = {};

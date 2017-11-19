@@ -581,7 +581,7 @@ function ASTBuilder() {
 			return ae;
 		} else if (isUnaryExpression(tokens)) {
 			return getUnaryExpression(tokens);
-		} else if (isBinaryExpression(tokens)) { // a + 1, must be after assignmentExpression
+		} else if (isBinaryExpression(tokens) && !isCallExpression(tokens)) { // a + 1, must be after assignmentExpression
 			var bex = getBinaryExpression(tokens);
 			return bex;
 		} else if (isBuiltinMethod(tokens, 0)) {
@@ -798,6 +798,7 @@ function ASTBuilder() {
 			&& tokens.reduce((a, t) => a || t.type === 'comma', false);
 	}
 	function isBinaryExpression(tokens) {
+		Log.d(TAG, tokens);
 		return tokens.length >= 3
 			&& tokens.reduce((a, t) => {
 				return a || isOperator(t);

@@ -4,6 +4,7 @@ import ThreadManager from './../runner/ThreadManager.js';
 import Thread from './../runner/Thread.js';
 import Environment from './../environment/Environment.js';
 import EnvEntry from './../environment/EnvEntry.js';
+import Unique from './../Unique.js';
 
 // thread { body }
 // thread id: { body }
@@ -67,7 +68,7 @@ class ThreadDeclaration extends FunctionExpression {
 						   .cloneBody(args);
 			//Log.d(body);
 			thread = new Thread(body, null, true);
-			thread.setId(this._body.callee + Date.now());
+			thread.setId(this._body.callee + Unique.get());
 			tm.addThread(thread);
 			this._stepIndex = 1;
 		}

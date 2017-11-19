@@ -1,6 +1,13 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
 import ThreadBare from './Threadbare.js';
+import IDEWindow from './editor/IDEWindow.jsx';
 
-(function() {
+ReactDOM.render(
+	<IDEWindow />,
+	document.getElementById('react-root')
+);
+/*(function() {
 	var b;
 	init();
 	document.getElementById('step').addEventListener('click', function(e) {
@@ -29,4 +36,6 @@ import ThreadBare from './Threadbare.js';
 			default: return console.log(ev +" : %c" + val, 'color:#888');
 		}
 	}
-})();
+
+
+})();*/

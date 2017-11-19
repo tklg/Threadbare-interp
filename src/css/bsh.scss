@@ -1,11 +1,7 @@
-//@import 'rt-raleway';
-//@import 'materialdesignicons';
 @import 'styles';
 
-* {
-	z-index: 1;
-}
 #LOGGERJS {
+	background: white;
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -16,4 +12,315 @@
 	word-break: break-all;
 	white-space: pre;
 	z-index: 0;
+}
+::selection {
+	background: rgba(127,166,140,.4);
+}
+body {
+	background: $theme-background;
+	overflow: hidden;
+}
+.flex-container {
+	display: flex;
+
+	&.row {
+		flex-direction: row;
+		width: 100%;
+	}
+	&.col {
+		flex-direction: column;
+		height: 100%;
+	}
+	& > * {
+		flex: 1;
+		position: relative;
+	}
+}
+.page-header {
+	height: 50px;
+	flex: none;
+	background: $theme-header;
+	// border-bottom: 1px solid $theme-border;
+	border-bottom: 1px solid $accent-5;
+	display: flex;
+
+	/* &:before {
+		position: absolute;
+		content: "";
+		width: 100%;
+		height: 3px;
+		top: 0;
+		left: 0;
+		background: $accent-5;
+	} */
+	h1 {
+		margin: 0;
+		padding: 0 10px;
+		font-size: $font-size-header;
+		height: 100%;
+		line-height: 50px;
+		font-weight: normal;
+		color: $text-light;
+		display: inline-block;
+		flex: 1;
+	}
+	.controls {
+		// float: right;
+		height: 50px;
+		// line-height: 50px;
+		padding: 10px;
+		display: inline-block;
+
+		.btn {
+			display: inline-block;
+			border-radius: 3px;
+			border: none;
+			background: rgba(255,255,255,.1);
+			height: 30px;
+			line-height: 26px;
+			padding: 0 14px;
+			color: $text-light;
+			outline: none;
+			position: relative;
+			cursor: pointer;
+
+			& + .btn {
+				margin-left: 10px;
+			}
+			&:hover:before/* ,
+			&:focus:before  */{
+				position: absolute;
+				content: "";
+				height: 100%;
+				width: 100%;
+				top: 0;
+				left: 0;
+				background: rgba(255,255,255,.08);
+			}
+			&.start {
+				background: $accent-5;
+				color: white;
+			}
+			&.step {
+				background: #bdab68;
+				color: white;
+			}
+			&.stop {
+				background: #fd6262;
+				color: white;
+			}
+		}
+	}
+}
+.view-file-manager {
+	width: 220px;
+	flex: none;
+	background: $theme-header;
+	// background: $theme-background;
+	border-left: 1px solid $theme-border;
+	
+	header {
+		position: relative;;
+		height: 30px;
+		line-height: 30px;
+		background: $theme-header;
+		// padding: 0 10px;
+		border-bottom: 1px solid $accent-2;
+
+		span {
+			display: inline-block;
+			height: 20px;
+			line-height: 20px;
+			margin: 5px 0;
+			color: $text-light;
+			padding-left: 10px;
+		}
+		.btn {
+			position: relative;
+			float: right;
+			background: $accent-5;
+			border: none;
+			border-radius: 3px;
+			height: 20px;
+			line-height: 20px;
+			margin: 5px 0;
+			outline: none;
+			cursor: pointer;
+			padding-right: 10px;
+
+			&:hover:before{
+				position: absolute;
+				content: "";
+				height: 100%;
+				width: 100%;
+				top: 0;
+				left: 0;
+				background: rgba(255,255,255,.08);
+			}
+			svg {
+				height: 18px;
+				width: 18px;
+
+				path {
+					fill: white;
+				}
+			}
+		}
+		.input {
+			float: right;
+			display: inline-block;
+			width: 100%;
+			height: 100%;
+			background: $accent-2;
+			border: none;
+			// border-bottom: 2px solid $accent-5;
+			outline: none;
+			text-indent: 6px;
+			color: $text-light;
+			font-size: $font-size-large
+		}
+	}
+	.infinite-scroller {
+		overflow-y: auto !important;
+	}
+	.file {
+		height: 24px;
+		width: 100%;
+		line-height: 24px;
+		display: block;
+		color: $text-light;
+		padding: 0 10px;
+		font-size: $font-size-med;
+		cursor: default;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		position: relative;
+
+		&:hover:before {
+			position: absolute;
+			content: "";
+			height: 100%;
+			width: 100%;
+			top: 0;
+			left: 0;
+			background: rgba(255,255,255,.08);
+		}
+	}
+}
+.view-console {
+	width: 340px;
+	flex: none;
+	background: $theme-header;
+	// background: $theme-background;
+	border-left: 1px solid $theme-border;
+	
+	header {
+		position: relative;;
+		height: 30px;
+		line-height: 30px;
+		background: $theme-header;
+		color: $text-light;
+		padding: 0 10px;
+		border-bottom: 1px solid $accent-2;
+	}
+	.infinite-scroller {
+		overflow-y: auto !important;
+	}
+	.line {
+		height: 18px;
+		line-height: 18px;
+		font-size: $font-size-large;
+		color: $text-secondary;
+		display: block;
+		padding: 0 10px;
+		// font-family: monospace;
+		width: 100%;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+
+		&.stdout {
+			color: $accent-5;
+		}
+		&.stderr {
+			color: #F46161;
+			// font-weight: bold;
+		}
+	}
+}
+.view-editor {
+	.tabs {
+		height: 30px;
+		flex: none;
+		background: $theme-header;
+		border-bottom: 1px solid $theme-border;
+
+		.tab {
+			height: 30px;
+			line-height: 30px;
+			padding: 0 6px;
+			color: $text-secondary;
+			background: $theme-background;
+			display: inline-block;
+			cursor: default;
+			min-width: 120px;
+			border-right: 1px solid $theme-border;
+			position: relative;
+
+			&:hover {
+				background: $theme-background-hover;
+			}
+			&.active {
+				color: $text-light;
+				background: $theme-background-hover;
+			}
+			&.active:before {
+				position: absolute;
+				content: "";
+				width: 100%;
+				top: 0;
+				left: 0;
+				height: 2px;
+				background: $accent-5;
+			}
+			span {
+				display: inline-block;
+				height: 18px;
+				line-height: 18px;
+				margin: 6px 0;
+				padding-right: 4px;
+			}
+			.icon {
+				height: 18px;
+				width: 18px;
+				border-radius: 3px;
+				float: right;
+				margin: 6px 0;
+				@include flex-center;
+				path {
+					fill: $text-secondary;
+				}
+
+				&:hover {
+					background: rgba(255,255,255,.1);
+				}
+			}
+		}
+	}
+	.editor {
+		// height: 370px;
+		width: 100%;
+
+		&:before {
+			position: absolute;
+			display: block;
+			content: "Loading...";
+			color: $text-hint;
+			font-size: 30px;
+			width: 100%;
+			height: 100%;
+			@include flex-center;
+		}
+	}
 }

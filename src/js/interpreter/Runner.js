@@ -20,6 +20,7 @@ class Runner {
 		event.on('threads.error', this.stop.bind(this));
 	}
 	step() {
+		//Log.d(TAG, "step");
 		if (!this._started) {
 			ThreadManager.reset();
 			this.tm = ThreadManager.getInstance(this._type);

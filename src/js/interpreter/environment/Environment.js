@@ -1,6 +1,8 @@
+import Unique from './../Unique.js';
+
 class Environment {
 	constructor(env) {
-		this.id = Date.now();
+		this.id = Unique.get();
 		this.parentEnv = env || null;
 		this.env = {};
 	}

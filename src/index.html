@@ -5,11 +5,13 @@
 		<meta author="tkluge" />
 		<meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, minimum-scale=1, user-scalable=no">
 		<link rel="stylesheet" type="text/css" href="./css/bsh.css">
+		<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
 		<meta name="theme-color" content="#225378">
-		<title>ThreadBare</title>
+		<title>Threadbare</title>
 	</head>
 	<body>
-		<textarea id="e" style="height: 700px;width: 500px;">
+		<div id="react-root"></div>
+		<!-- <textarea id="e" style="height: 700px;width: 500px;">
 class Semaphore {
 	private int permissions;
 	public Semaphore(int perms) {
@@ -22,10 +24,8 @@ class Semaphore {
 			__local_thread_store(__thread_id());
 			__thread_sleep();
 		}
-		// print("acq: " + n + " " + permissions + " " + __local_thread_count());
 	}
 	public atomic void release() {
-		// print("rel: " + n + " " + permissions + " " + __local_thread_count());
 		if (__local_thread_count() == 0) {
 			permissions++;
 		} else {
@@ -35,7 +35,7 @@ class Semaphore {
 	}
 }
 public Semaphore mutex = new Semaphore(1),
-		 m2 = new Semaphore(0);
+				 m2 = new Semaphore(0);
 public int counter = 0;
 function turnstile(int id) {
 	int temp;
@@ -110,7 +110,7 @@ thread turnstile(1);
 thread turnstile(2);
 m2.acquire();
 print("final count: " + counter);
-</div>
+</div> -->
 	</body>
 	<script type="text/javascript" src="./js/app.bundle.js"></script>
 </html>
