@@ -53,7 +53,7 @@ class CallExpression extends AbstractElement {
 			if (this._isConstructor) {
 				var name = this._callee.split('_')[0];
 				var classDef = this._environment.getEntry(name)
-				if (!classDef) throw `Class ${name} is not defined.`;
+				if (!classDef) throw `Class '${name}' is not defined.`;
 				classDef = classDef.getValue();
 				this._returnValue = classDef.clone();
 				//Log.d(this._returnValue);
@@ -70,7 +70,9 @@ class CallExpression extends AbstractElement {
 				this._body = constr.cloneBody(args, true);
 			} else {
 				// get body from function, inject params into its env
-				var fe = this._environment.getEntry(this._callee).getValue();
+				var fe = this._environment.getEntry(this._callee);
+				if (!fe) throw `Method '${this._callee}' is not defined.`;
+				fe = fe.getValue();
 				var args = this._arguments.map(a => a.eval());
 				this._body = fe.cloneBody(args);
 				//Log.d("cloned body");

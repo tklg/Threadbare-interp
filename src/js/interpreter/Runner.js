@@ -43,7 +43,8 @@ class Runner {
 			try {
 				if (this.interval || run) this.tm.step();
 			} catch (e) {
-				Log.e(TAG, e);
+				//Log.e(TAG, e);
+				event.emit("thread.error", e);
 				this.stop();
 			}
 		}

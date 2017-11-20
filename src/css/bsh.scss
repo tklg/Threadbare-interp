@@ -161,14 +161,8 @@ body {
 			cursor: pointer;
 			padding-right: 10px;
 
-			&:hover:before{
-				position: absolute;
-				content: "";
-				height: 100%;
-				width: 100%;
-				top: 0;
-				left: 0;
-				background: rgba(255,255,255,.08);
+			&:hover {
+				background: #99B7A2;
 			}
 			svg {
 				height: 18px;
@@ -194,6 +188,7 @@ body {
 		}
 	}
 	.infinite-scroller {
+		width: 100%;
 		overflow-y: auto !important;
 	}
 	.file {
@@ -210,13 +205,7 @@ body {
 		overflow: hidden;
 		position: relative;
 
-		&:hover:before {
-			position: absolute;
-			content: "";
-			height: 100%;
-			width: 100%;
-			top: 0;
-			left: 0;
+		&:hover {
 			background: rgba(255,255,255,.08);
 		}
 		&.ext-jtbc {
@@ -256,6 +245,31 @@ body {
 				path {
 					fill: $text-hint;
 				}
+			}
+		}
+	}
+	footer {
+		flex: none;
+		height: 30px;
+		line-height: 30px;
+		border-top: 1px solid $accent-5;
+		color: $text-light;
+		padding: 0 10px;
+		background: $theme-background;
+		text-align: right;
+
+		.btn {
+			height: 20px;
+			line-height: 20px;
+			background: $accent-5;
+			color: white;
+			border: none;
+			border-radius: 3px;
+			outline: none;
+			cursor: pointer;
+
+			&:hover {
+				background: #99B7A2;
 			}
 		}
 	}
@@ -340,7 +354,33 @@ body {
 		}
 		&.stderr {
 			color: #F46161;
+			background: #3c1616;
 			// font-weight: bold;
+		}
+	}
+	footer {
+		flex: none;
+		height: 30px;
+		line-height: 30px;
+		border-top: 1px solid $accent-5;
+		color: $text-light;
+		padding: 0 10px;
+		background: $theme-background;
+		text-align: right;
+
+		.btn {
+			height: 20px;
+			line-height: 20px;
+			background: #F46161;
+			color: white;
+			border: none;
+			border-radius: 3px;
+			outline: none;
+			cursor: pointer;
+
+			&:hover {
+				background: #F37676;
+			}
 		}
 	}
 }
@@ -417,6 +457,15 @@ body {
 			height: 100%;
 			@include flex-center;
 		}
+	}
+	footer {
+		flex: none;
+		height: 30px;
+		line-height: 30px;
+		border-top: 1px solid $accent-5;
+		color: $text-light;
+		padding: 0 10px;
+		background: $theme-background;
 	}
 }
 .view-ast {

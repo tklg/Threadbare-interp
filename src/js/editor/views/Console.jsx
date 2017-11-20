@@ -55,12 +55,20 @@ export default class Console extends React.Component {
 				</header>
 				<Infinite
 					className="infinite-scroller"
-					containerHeight={this.state.height - 30 || 20}
+					// ?????????????????????? why??????????
+					containerHeight={(this.state.height - (30 * 2) - 1) || 20}
 					elementHeight={18}
 					//displayBottomUpwards={true} 
 					>
 					{lines.map(this.getLine)}
 				</Infinite>
+				<footer>
+					<button 
+						className="btn"
+						onClick={this.props.onClickClear}>
+					Clear output
+					</button>
+				</footer>
 			</section>
 		);
 	}

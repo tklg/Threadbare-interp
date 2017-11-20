@@ -37,6 +37,7 @@ export default class Editor extends React.Component {
 		const code = current.content;
 	    const options = {
 	    	selectOnLineNumbers: true,
+	    	tabSize: 4,
 	    	//readOnly: current.fake || false,
 	    };
 	    const tabs = this.props.tabs;
@@ -65,6 +66,9 @@ export default class Editor extends React.Component {
 				        editorWillMount={this.editorWillMount.bind(this)}
 				      	/>
 				</section>
+				<footer>
+					
+				</footer>
 			</FlexContainer>
 		);
 	}

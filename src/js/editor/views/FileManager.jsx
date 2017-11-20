@@ -31,8 +31,13 @@ export default class FileManager extends React.Component {
 		this.setState({createFile: true});
 	}
 	handleFileNameInput(e) {
+		var value = e.target.value.trim();
 		if (e.key === 'Enter') {
-			this.props.onCreateFile(e.target.value);
+			if (!value.length) {
+				this.setState({createFile: false});
+				return;
+			}
+			this.props.onCreateFile(value);
 			this.setState({
 				createFile: false,
 				newFileName: '',
@@ -87,7 +92,7 @@ export default class FileManager extends React.Component {
 							value={this.state.newFileName}
 							type="text" 
 							className="input"  
-							placeholder="New file name"
+							placeholder="new-file.jtb"
 							autoFocus
 							onChange={this.handleFileNameInput}
 							onKeyPress={this.handleFileNameInput} />
@@ -95,10 +100,17 @@ export default class FileManager extends React.Component {
 				</header>
 				<Infinite
 					className="infinite-scroller"
-					containerHeight={this.state.height - 30 || 20}
+					containerHeight={this.state.height - 30 * 2 || 20}
 					elementHeight={24}>
 					{files.map(this.getFileItem)}
 				</Infinite>
+				<footer>
+					<button 
+						className="btn"
+						onClick={this.props.onClickRestoreFiles}>
+					Restore default files
+					</button>
+				</footer>
 			</section>
 		);
 	}

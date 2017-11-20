@@ -16,8 +16,8 @@ export default class ASTViewer extends React.Component {
 		var cache = [];
 		var str = this.props.ast;
 		var html = false;
-		return JSON.stringify(str, function(key, value) {
-			if (['_hasRun', '_declIndex', '_stepIndex', '_argsIndex', '_raw'].includes(key)) return;
+		var res = JSON.stringify(str, function(key, value) {
+			if (['_hasRun', '_declIndex', '_stepIndex', '_argsIndex', '_raw', '_funcArgIndex'].includes(key)) return;
 		    if (typeof value === 'object' && value !== null) {
 		        if (cache.indexOf(value) !== -1) {
 		            // Circular reference found, discard key
@@ -29,6 +29,8 @@ export default class ASTViewer extends React.Component {
 		    //return `<span style="color:#777777">${value}</span>`;
 		    return value;
 		}, 2);
+
+		return res.replace(/"_(.*)":/g, '"$1":');
 	}
 	render() {
 		return (

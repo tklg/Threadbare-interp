@@ -6,6 +6,7 @@ import Console from './views/Console.jsx';
 import Editor from './views/Editor.jsx';
 import ASTViewer from './views/ASTViewer.jsx';
 import Threadbare from './../Threadbare.js';
+import TBLang from './TBLang.js';
 import SFS from './components/SessionFilesystem.js';
 
 import Unique from './../interpreter/Unique.js';
@@ -37,7 +38,9 @@ export default class IDEWindow extends React.Component {
 		this.getFileFromId = this.getFileFromId.bind(this);
 		this.getCurrentFile = this.getCurrentFile.bind(this);
 		this.deleteFile = this.deleteFile.bind(this);
+		this.createDefaultFiles = this.createDefaultFiles.bind(this);
 		this.showAST = this.showAST.bind(this);
+		this.clearConsole = this.clearConsole.bind(this);
 		this.threadbareInstance = null;
 	}
 	componentDidMount() {
@@ -52,6 +55,9 @@ export default class IDEWindow extends React.Component {
 	handleOutput(ev, val) {
 		if (ev === 'ast.ready') {
 			this.setState({ast: val});
+		}
+		if (ev.indexOf('error') > -1) {
+			ev = 'stderr';
 		}
 		var line = {};
 		switch (ev) {
@@ -105,6 +111,7 @@ export default class IDEWindow extends React.Component {
 	onEditorChange(value, e) {
 		//console.log('onChange', e);
 	    this.getCurrentFile().content = value;
+		SFS.saveFile(this.getCurrentFile());
 	    //this.state.files[this.state.currentTab].content = value;
 		this.setState({needsToBeParsed: true});
 	}
@@ -227,13 +234,29 @@ export default class IDEWindow extends React.Component {
 			if (x.name > y.name) return 1;
 			return 0;
 		});
-		if (this.state.currentTab === -1 && list.length)  {
+		if (this.state.currentTab === -1 && list.filter(x => x.hasTab).length)  {
 			this.setState({currentTab: list.filter(x => x.hasTab)[0].id}, () => {
 				this.setState({files: list});
 			});
 		} else if (list.length) {
 			this.setState({files: list});
 		}
+	}
+	createDefaultFiles() {
+		var files = TBLang.getDefaultFiles();
+		for (var f of files) {
+			if (!this.state.files.find(x => {
+				return x.name === f.name;
+			})) {
+				var id = SFS.createFile(f.name);
+				f.id = id;
+				//f.content = f.content.replace(/  /g, '	');
+				f.hasTab = false;
+				f.fake = false;
+				SFS.saveFile(f);
+			}
+		}
+		this.loadFiles();
 	}
 	showAST() {
 		if (this.state.needsToBeParsed) {
@@ -244,6 +267,9 @@ export default class IDEWindow extends React.Component {
 		} else {
 			this.setState({astVisible: !this.state.astVisible});
 		}
+	}
+	clearConsole() {
+		this.setState({consoleLines: []});
 	}
 	render() {
 		var numTabs = this.state.files.filter(x => x.hasTab).length;
@@ -277,11 +303,13 @@ export default class IDEWindow extends React.Component {
 					}
 					{!this.state.astVisible && 
 						<Console
-						lines={this.state.consoleLines} />
+						lines={this.state.consoleLines}
+						onClickClear={this.clearConsole} />
 					}
 					{!this.state.astVisible && 
 						<FileManager 
 						files={this.state.files}
+						onClickRestoreFiles={this.createDefaultFiles}
 						onCreateFile={this.createFile}
 						deleteFile={this.deleteFile}
 						openFile={this.openFile} />
