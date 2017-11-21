@@ -12,11 +12,19 @@ var gulpif = require('gulp-if');
 var browserSync = require('browser-sync').create();
 //var del = require('del');
 
+console.log("env: " + process.env.NODE_ENV);
 var dev = (process.env.NODE_ENV || 'development').trim() == 'development';
 
-gulp.task('default', ['html', 'serve']);
+var ts = ['html'];
+if (dev) ts.push('serve');
+else ts = ts.concat(['css', 'js']);
+console.log("tasKs: " + ts.toString());
+gulp.task('default', ts);
 
 gulp.task('js', function() {
+    webpack(require('./webpack.config.js'), function(err, stats) {
+
+    });
     //return gulp.src(['src/js/login.js'])
     //    .pipe(webpackStream(require('./webpack.config.js'), webpack))
         //.pipe(gulp.dest('build/js'))

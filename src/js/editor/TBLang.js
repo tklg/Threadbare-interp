@@ -139,6 +139,63 @@ m2.acquire();
 m2.acquire();
 print("final count: " + counter);
 		`,
+	  },
+	  {
+	  	name: 'DEMO.jtb',
+	  	content: `// class definition
+class Foo {
+	private int x;
+	public Foo() {
+		print("constructor");
+	}
+	public void bar(int _x) {
+		x = _x;
+		print("Foo::bar");
+	}
+	public void baz() {
+		print("baz: " + x);
+	}
+}
+
+int z = 9;
+// function definition
+function sum(int x, int y) {
+	print(x + y);
+}
+// function call
+sum(1 + 2, 5);
+
+// function-defined thread
+thread sum(6, z);
+
+// unlabelled thread
+thread {
+	print("Unlabelled thread");
+	for (int i = 0; i < 5; ++i) {
+		print("ULThread: " + i);
+	}
+}
+// labelled thread
+thread SomeThread: {
+	private Foo foo = new Foo();
+	foo.bar(10);
+	foo.baz();
+}
+// parameterized thread
+int tpar = 800;
+thread ParamThread(tpar): {
+	print("ParamThread: " + tpar);
+	int i = 10;
+	while (i > 0) {
+		print("ParamThread: " + i--);
+	}
+}
+
+if (5 > 100) {
+	print("no");
+} else if (50 > 6) {
+	print("yes");
+}`,
 	  }
 	];
   }

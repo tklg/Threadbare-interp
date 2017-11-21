@@ -6,7 +6,7 @@ export default class Console extends React.Component {
 		super();
 		this.state = {
 			height: 0,
-			displayAll: false
+			displayAll: true
 		}
 		this.resize = this.resize.bind(this);
 		this.getLine = this.getLine.bind(this);
@@ -25,7 +25,7 @@ export default class Console extends React.Component {
 	}
 	getLine(line, i) {
 		return (
-			<div className={"line" + (" " + line.type)} key={i} title={line.text}>{line.text}</div>
+			<div className={"line" + (" " + line.type)} key={i} title={line.text.toString()}>{line.text.toString()}</div>
 		);
 	}
 	setCheckValue(e) {
@@ -36,7 +36,7 @@ export default class Console extends React.Component {
 		var lines = this.props.lines;
 		if (!this.state.displayAll) {
 			lines = lines.filter(line => {
-				return line.type === 'stdout' || line.type === 'stderr';
+				return ['stdout', 'stderr', 'info', 'warn'].includes(line.type);
 			});
 		}
 		return (
@@ -54,7 +54,7 @@ export default class Console extends React.Component {
 					</label>
 				</header>
 				<Infinite
-					className="infinite-scroller"
+					className="infinite-scroller console"
 					// ?????????????????????? why??????????
 					containerHeight={(this.state.height - (30 * 2) - 1) || 20}
 					elementHeight={18}

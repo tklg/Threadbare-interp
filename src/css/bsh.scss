@@ -118,7 +118,7 @@ body {
 				color: white;
 			}
 			&.stop {
-				background: #fd6262;
+				background: #F46161;
 				color: white;
 			}
 		}
@@ -356,6 +356,14 @@ body {
 			color: #F46161;
 			background: #3c1616;
 			// font-weight: bold;
+		}
+		&.info {
+			color: #80e2ff;
+			background: #003061;
+		}
+		&.warn {
+			color: #ffe14e;
+			background: #423a00;
 		}
 	}
 	footer {

@@ -24,7 +24,7 @@ class Identifier extends AbstractElement {
 		//if (this._name == 'id') console.log(this._environment);
 		var ee = this._environment.getEntry(this._name);
 		if (ee) return ee.getValue();
-		else throw this._name + " is not defined in the environment.";
+		else throw this._name + " is not defined.";
 	}
 }
 export default Identifier;

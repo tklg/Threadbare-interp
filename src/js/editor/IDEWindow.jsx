@@ -63,6 +63,8 @@ export default class IDEWindow extends React.Component {
 		switch (ev) {
 			case 'stdout':
 			case 'stderr':
+			case 'info':
+			case 'warn':
 				line = {
 					type: ev,
 					text: val
@@ -76,7 +78,7 @@ export default class IDEWindow extends React.Component {
 					ev += ': ';
 				}
 				line = {
-					type: 'info',
+					type: 'x',
 					text: ev + val
 				};
 				break;
@@ -87,7 +89,7 @@ export default class IDEWindow extends React.Component {
 
 		// hacky but it works and react-infinite doesnt have a better way of doing it
 		// scrolls console to the bottom
-		var el = document.querySelector('.infinite-scroller');
+		var el = document.querySelector('.infinite-scroller.console');
 		el.scrollTop = el.scrollHeight;
 	}
 	// collect header files and prepend them to the current file
@@ -180,21 +182,28 @@ export default class IDEWindow extends React.Component {
 		var content = this.collectContent();
 		this.threadbareInstance.interpret(content, 'random');
 	}
+	// refactor because its a mess
 	start() {
 		if (this.threadbareInstance.isDone()) {
 			this.threadbareInstance = null;
 			this.createThreadbare();
-		}
-		if (this.state.needsToBeParsed) {
 			this.parse();
 			setTimeout(() => {
 				this.threadbareInstance.start();
 			}, 300);
 		} else {
-			this.threadbareInstance.start();
+			if (this.state.needsToBeParsed) {
+				this.parse();
+				setTimeout(() => {
+					this.threadbareInstance.start();
+				}, 300);
+			} else {
+				this.threadbareInstance.start();
+			}
 		}
 	}
 	stop() {
+		this.setState({needsToBeParsed: true});
 		if (this.threadbareInstance) this.threadbareInstance.stop();
 	}
 	step() {
@@ -212,6 +221,9 @@ export default class IDEWindow extends React.Component {
 		}
 	}
 	createFile(name) {
+		if (!name.endsWith('.jtbc') && !name.endsWith('.jtbi') && !name.endsWith('.jtb')) {
+			name += '.jtb';
+		}
 		SFS.createFile(name);
 
 		this.loadFiles();
@@ -254,6 +266,9 @@ export default class IDEWindow extends React.Component {
 				f.hasTab = false;
 				f.fake = false;
 				SFS.saveFile(f);
+				this.handleOutput('info', 'Created default file: ' + f.name);
+			} else {
+				this.handleOutput('warn', 'Skipped creating default file: ' + f.name);
 			}
 		}
 		this.loadFiles();

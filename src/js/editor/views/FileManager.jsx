@@ -99,7 +99,7 @@ export default class FileManager extends React.Component {
 					}
 				</header>
 				<Infinite
-					className="infinite-scroller"
+					className="infinite-scroller file-manager"
 					containerHeight={this.state.height - 30 * 2 || 20}
 					elementHeight={24}>
 					{files.map(this.getFileItem)}

@@ -17,7 +17,11 @@ function Thread(exp, env, c) {
 
 	this._id = 'noid';
 
-	if (environment) expression.environment = environment;
+	try {
+		if (environment) expression.environment = environment;
+	} catch (e) {
+		event.emit("thread.error", "Could not bind the environment to an element in the execution tree.");
+	}
 
 	this.getId = function() {
 		return this._id;

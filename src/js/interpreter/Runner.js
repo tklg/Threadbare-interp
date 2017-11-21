@@ -14,7 +14,7 @@ class Runner {
 		this._started = false;
 		this._tree = tree;
 		this._type = type;
-		this.delay = 3;
+		this.delay = 1;
 		this.interval = null;
 		event.on('thread.error', this.stop.bind(this));
 		event.on('threads.error', this.stop.bind(this));

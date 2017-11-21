@@ -41,11 +41,12 @@ export default class Header extends React.Component {
 							Step
 						</button>
 					}
-					{/*<button 
+					{!this.props.showingAST && 
+						<button 
 						className="btn stop"
 						onClick={this.props.onClickStop}>
 						Stop
-					</button>*/}
+					</button>}
 				</nav>
 			</header>
 		);

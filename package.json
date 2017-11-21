@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "set NODE_ENV=production && gulp --env=production --single"
+    "build": "export NODE_ENV=production && gulp --env=production --single"
   },
   "author": "",
   "devDependencies": {
