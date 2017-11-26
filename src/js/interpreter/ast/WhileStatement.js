@@ -1,10 +1,13 @@
 import AbstractElement from './AbstractElement.js';
 import Log from './../../logger/Log.js';
+import Event from './../../Eventify.js';
+import Unique from './../Unique.js';
 import clone from 'clone';
 
 const hiddenTest = Symbol('hiddenTest');
 const hiddenBody = Symbol('hiddenBody');
 const TAG = 'WhileStatement';
+const event = Event.getInstance();
 // while (test) { body }
 class WhileStatement extends AbstractElement {
 	constructor() {
@@ -33,6 +36,13 @@ class WhileStatement extends AbstractElement {
 		super.environment = env;
 		this._test.environment = env;
 		this._body.environment = env;
+		
+		var thisID = Unique.get();
+		super.runtimeID = thisID;
+		this._body.runtimeID = thisID;
+		event.on(thisID + ".break", () => {
+			this._break = true;
+		});
 	}
 	step() {
 		// evaluate the test every step
@@ -78,7 +88,7 @@ class WhileStatement extends AbstractElement {
 		}
 	}
 	isDone() {
-		return /*this._break || */this._test && this._test.isDone() && !this._test.eval().value && this._body.isDone();
+		return this._break || this._test && this._test.isDone() && !this._test.eval().value && this._body.isDone();
 	}
 }
 export default WhileStatement;

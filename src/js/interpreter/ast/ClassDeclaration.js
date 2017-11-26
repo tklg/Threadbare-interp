@@ -2,7 +2,6 @@ import AbstractElement from './AbstractElement.js';
 import Class from './class/Class.js';
 import clone from 'clone';
 import Log from './../../logger/Log.js';
-import Environment from './../environment/Environment.js';
 import EnvEntry from './../environment/EnvEntry.js';
 
 //const man = ClassManager.getInstance();
@@ -38,9 +37,6 @@ class ClassDeclaration extends AbstractElement {
 	set superClass(superClass) {
 		this._superClass = superClass;
 	}
-	getMethod(name) {
-		// search Class for method called [name]
-	}
 	step() {
 		// Classes are defined atomically
 		var ee = new EnvEntry();
@@ -49,6 +45,8 @@ class ClassDeclaration extends AbstractElement {
 		var c = new Class();
 
 		for (var item of this._body.body) {
+
+
 			if (item.type === 'VariableDeclaration') {
 				// get the item to modify the class environment
 				item.environment = c;
@@ -56,11 +54,14 @@ class ClassDeclaration extends AbstractElement {
 					item.step();
 				}
 			} else if (item.type === 'MethodDefinition' && item.kind === 'constructor') {
+				if (this._type === "MonitorDeclaration") item.value.addMonitorRestriction();
 				var ce = new EnvEntry();
 				ce.setName(item.key.name);
 				ce.setValue(item.value);
+				ce.addTag(item.visibility);
 				c.addConstructor(ce);
 			} else {
+				if (this._type === "MonitorDeclaration") item.value.addMonitorRestriction();
 				var ce = new EnvEntry();
 				ce.setName(item.key.name);
 				ce.setValue(item.value);

@@ -1,6 +1,7 @@
 import AbstractElement from './AbstractElement.js';
 import Log from './../../logger/Log.js';
 import Environment from './../environment/Environment.js';
+import Unique from './../Unique.js';
 import clone from 'clone';
 
 const hiddenTest = Symbol('hiddenTest');
@@ -57,6 +58,13 @@ class ForStatement extends AbstractElement {
 		this._test.environment = this._nestedEnv;
 		this._update.environment = this._nestedEnv;
 		this._body.environment = this._nestedEnv;
+
+		var thisID = Unique.get();
+		super.runtimeID = thisID;
+		this._body.runtimeID = thisID;
+		event.on(thisID + ".break", () => {
+			this._break = true;
+		});
 	}
 	step() {
 		// for loop does not check the test on each step

@@ -61,6 +61,9 @@ class FunctionExpression extends AbstractElement {
 		//this._body.environment = env;
 		//this._id.environment = env;
 	}
+	addMonitorRestriction() {
+		this._body.addMonitorRestriction();
+	}
 	step() {
 		// add declaration to environment
 		var ee = new EnvEntry();

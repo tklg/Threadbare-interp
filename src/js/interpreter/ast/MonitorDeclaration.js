@@ -1,8 +1,6 @@
 import ClassDeclaration from './ClassDeclaration.js';
 
-// monitor { body }
-// monitor id: { body }
-// monitor id(params): { body }
+// monitor X { }
 class MonitorDeclaration extends ClassDeclaration {
 	constructor() {
 		super();

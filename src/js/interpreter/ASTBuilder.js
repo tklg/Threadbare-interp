@@ -16,7 +16,6 @@ import ExpressionStatement from './ast/ExpressionStatement.js';
 import BuiltinMethod from './ast/BuiltinMethod.js';
 import FunctionExpression from './ast/FunctionExpression.js';
 import ArrayExpression from './ast/ArrayExpression.js';
-import ConstructorFunctionExpression from './ast/ConstructorFunctionExpression.js';
 import IFStatement from './ast/IFStatement.js';
 import ForStatement from './ast/ForStatement.js';
 import WhileStatement from './ast/WhileStatement.js';

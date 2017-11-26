@@ -12,7 +12,7 @@ export default class TBLang {
 	  ],
 
 	  typeKeywords: [
-		'boolean', 'double', 'byte', 'int', 'short', 'char', 'void', 'long', 'float'
+		'boolean', 'double', 'byte', 'int', 'short', 'char', 'void', 'long', 'float', 'condition'
 	  ],
 
 	  operators: [
