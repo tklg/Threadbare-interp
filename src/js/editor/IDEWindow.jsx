@@ -54,7 +54,7 @@ export default class IDEWindow extends React.Component {
 	}
 	handleOutput(ev, val) {
 		if (ev === 'ast.ready') {
-			this.setState({ast: val});
+			this.setState({ast: JSON.parse(JSON.stringify(val))});
 		}
 		if (ev.indexOf('error') > -1) {
 			ev = 'stderr';

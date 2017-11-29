@@ -20,9 +20,22 @@ class BlockStatement extends AbstractElement {
 		for (var i of this._body) {
 			i.environment = env;
 		}
+
+		var thisID = Unique.get();
+		super.runtimeID = thisID;
+		this._body.runtimeID = thisID;
+		event.on(thisID + ".return", (x) => {
+			this._returnValue = x;
+		});
 	}
 	get environment() {
 		return this._environment;
+	}
+	set runtimeID(id) {
+		super.runtimeID = id;
+		for (var i of this._body) {
+			t.runtimeID = id;
+		}
 	}
 	get hasRun() {
 		return this._hasRun || false;
@@ -32,6 +45,11 @@ class BlockStatement extends AbstractElement {
 	}
 	get atomic() {
 		return this._atomic;
+	}
+	addMonitorRestriction() {
+		this._isMonitorContent = true;
+		// store monitor thread state in monitor/class env
+		// like builtin method does
 	}
 	step() {
 		var expr = this._body[this._stepIndex];
@@ -49,7 +67,14 @@ class BlockStatement extends AbstractElement {
 		}
 	}
 	isDone() {
-		return this._stepIndex === this._body.length && this._hasRun;
+		return this._returnValue || this._stepIndex === this._body.length && this._hasRun;
+	}
+	eval() {
+		var nil = new Literal();
+		nil.value = null;
+		nil.valueType = 'null'
+		nil.raw = '"null"';
+		return this._returnValue || nil;
 	}
 }
 export default BlockStatement;

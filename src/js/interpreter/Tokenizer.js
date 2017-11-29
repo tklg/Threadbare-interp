@@ -10,6 +10,7 @@ import ComToken from './token/ComToken.js';
 import SemToken from './token/SemToken.js';
 import DotToken from './token/DotToken.js';
 import AtomicToken from './token/AtomicToken.js';
+import BreakToken from './token/BreakToken.js';
 import ThreadToken from './token/ThreadToken.js';
 import LabelToken from './token/LabelToken.js';
 import ParamLabelToken from './token/ParamLabelToken.js';
@@ -27,17 +28,19 @@ import ControlFlowToken from './token/ControlFlowToken.js';
 import ClassToken from './token/ClassToken.js';
 import NewClassToken from './token/NewClassToken.js';
 
+// function matching like func( is dumb
+
 const tokenRegex = {
 	typeModifier: /^\s*(global|static|final|public|private|protected|atomic)/,
 	class: /^\s*(class|extends)/,
 	new: /^\s*(new)/,
 	primitiveType: /^\s*(char|short|int|float|double|long|boolean)/,
-	objectType: /^\s*([A-Z][a-zA-Z0-9_]+)/,
+	objectType: /^\s*(condition|[A-Z][a-zA-Z0-9_]+)/,
 	variableName: /^\s*([a-z\$_][a-z0-9\$_]*)/i,
 	dot: /(\.)/,
 	operatorShorthand: /^\s*(\+\+|--|\+=|-=|\*=|\/=|%=|\^=|\|=|&=|>>=|<<=)/,
 	operator: /^\s*(\+|-|\*|\/|%|==|&&|\|\||!=|>>|<<|>=|<=|>|<|=|!|~)/,
-	valueInteger: /^\s*(-?\d+)/,
+	valueInteger: /^\s*(-?\d+)/, // should match the - separately so -var is possible, and use it as a unaryexpression
 	valueChar: /^\s*'(.)'/,
 	valueString: /^\s*"(.+?)"/,
 	valueBool: /^\s*(true|false)/,
@@ -48,6 +51,7 @@ const tokenRegex = {
 	thread: /^\s*(thread)/,
 	functionDeclaration: /^\s*(function)/,
 	atomic: /^\s*(atomic)/,
+	break: /^\s*(return|break)/,
 	label: /^\s*([a-z\$_][a-z0-9\$_]*):/i,
 	builtin: /^\s*(print|error|sleep|__thread_sleep|__thread_wake|__local_thread_count|__thread_id|__local_thread_store|__local_thread_unstore) *\(/, // func(
 	function: /^\s*([a-z\$_][a-z0-9\$_]*) *\(/i, // func(
@@ -65,6 +69,7 @@ const matchOrder = [
 	'commentStart',
 	'commentEnd',
 	'atomic',
+	'break',
 	'typeModifier',
 	'class',
 	'new',
@@ -101,7 +106,7 @@ function Tokenizer(_str) {
 	var str = _str;
 	var workingStr = str;
 	var parsedStr = '';
-	var linesArr = _str.replace(/\t/g, '').split(/\r?\n/)/*.map(ln => ln + '\n')*/;
+	var linesArr = _str/*.map(ln => ln + '\n')*/;
 	//Log.d("LNS", JSON.parse(JSON.stringify(linesArr)));
 	var lineNo = 1;
 	var index = 0;
@@ -109,6 +114,11 @@ function Tokenizer(_str) {
 	var startedComment, commentType;
 
 	this.parse = function() {
+		// remove comments and tabs, turn into array of lines
+		_str = _str.replace(/\t/g, '') // remove tabs
+				   .replace(/\/\*.*?\*\//g, '') // remove /* */
+				   .replace(/\/\/.*?\n/g, '\n') // remove //
+				   .split(/\r?\n/);
 		return new Promise((resolve, reject) => {
 			while (linesArr.length) {
 				try {
@@ -188,6 +198,7 @@ TokenUtil.getFromNameAndMatch = function(name, match, pos) {
 		case 'valueChar':
 		case 'valueString': return new ValueToken(name, match, pos);
 		case 'atomic': return new AtomicToken(name, match, pos);
+		case 'break': return new BreakToken(name, match, pos);
 		case 'comma': return new ComToken(name, match, pos);
 		case 'semicolon': return new SemToken(name, match, pos);
 		case 'dot': return new DotToken(name, match, pos);

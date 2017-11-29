@@ -50,5 +50,8 @@ class MethodDefinition extends AbstractElement {
 		this._key.environment = env;
 		this._value.environment = env;
 	}
+	addMonitorRestriction() {
+		this._value.addMonitorRestriction();
+	}
 }
 export default MethodDefinition;
